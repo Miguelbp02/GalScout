@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react'
+import { obtenerPosiciones } from '../services/positionService'
 import type { Jugador } from '../types/jugador'
+import type { Posicion } from '../types/posicion'
 import PlayerCard from './PlayerCard'
 
 interface PlayerListProps {
@@ -7,6 +10,14 @@ interface PlayerListProps {
 }
 
 function PlayerList({ jugadores, hayFiltrosActivos = false }: PlayerListProps) {
+  const [posiciones, setPosiciones] = useState<Posicion[]>([])
+
+  useEffect(() => {
+    obtenerPosiciones()
+      .then(setPosiciones)
+      .catch(() => setPosiciones([]))
+  }, [])
+
   return (
     <section className="py-5" aria-labelledby="player-list-title">
       <div className="d-flex align-items-center justify-content-between mb-4">
@@ -33,7 +44,7 @@ function PlayerList({ jugadores, hayFiltrosActivos = false }: PlayerListProps) {
               className="col-12 col-md-6 col-lg-4"
               key={jugador.id}
             >
-              <PlayerCard jugador={jugador} />
+              <PlayerCard jugador={jugador} posiciones={posiciones} />
             </div>
           ))
         )}

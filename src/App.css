@@ -57,8 +57,8 @@
 }
 
 .player-avatar {
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
   flex-shrink: 0;
   border: 1px solid var(--app-border);
   border-radius: 50%;
@@ -82,6 +82,101 @@
 
 .player-dominant-foot-value .pierna-dominante {
   margin-left: -8px;
+}
+
+.player-detail-overview {
+  display: grid;
+  grid-template-columns: minmax(390px, 1fr) 190px 220px;
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 4rem);
+}
+
+.player-detail-identity {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  min-width: 0;
+}
+
+.player-detail-data {
+  min-width: 330px;
+}
+
+.player-detail-data dt {
+  white-space: nowrap;
+}
+
+.player-detail-radar,
+.player-detail-position-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-detail-position-map .position-field-selector--resumen {
+  margin: 0;
+}
+
+.player-profile-radar {
+  width: 175px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.player-profile-radar-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.player-profile-radar-ring {
+  fill: rgba(88, 111, 128, 0.06);
+  stroke: rgba(176, 195, 207, 0.2);
+  stroke-width: 0.8;
+}
+
+.player-profile-radar-axis {
+  stroke: rgba(176, 195, 207, 0.2);
+  stroke-width: 0.8;
+}
+
+.player-profile-radar-profile {
+  fill: rgba(77, 171, 158, 0.16);
+  stroke: #53b7aa;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.player-profile-radar-point {
+  fill: #68c4b7;
+  stroke: #d5f5ef;
+  stroke-width: 1;
+}
+
+.player-profile-radar-label {
+  fill: var(--bs-secondary-color);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.player-profile-radar-caption {
+  color: var(--bs-secondary-color);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .player-detail-overview {
+    grid-template-columns: minmax(360px, 1fr) 190px;
+  }
+
+  .player-detail-position-map {
+    grid-column: 1 / -1;
+  }
 }
 
 .player-card-link {
@@ -115,6 +210,95 @@
     0 10px 20px rgba(0, 0, 0, 0.3),
     0 2px 4px rgba(0, 0, 0, 0.26);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.player-card-link .card-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+}
+
+.player-card-measures {
+  color: var(--bs-secondary-color);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.player-card-measures span {
+  padding: 0 0.15rem;
+  color: var(--app-accent);
+}
+
+.player-card-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 150px;
+  padding: 0.35rem 0 0.15rem;
+}
+
+.player-card-foot {
+  display: grid;
+  gap: 0.15rem;
+  align-content: center;
+}
+
+.player-card-foot-label {
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.player-card-position-map {
+  display: flex;
+  flex: 0 0 118px;
+  align-items: center;
+  justify-content: center;
+  min-height: 148px;
+}
+
+.player-card-position-map .position-field-selector--resumen {
+  width: 118px;
+  padding-top: 0;
+}
+
+.player-card-position-map .position-field-selector--resumen .position-field-scene {
+  min-height: 148px;
+}
+
+.player-card-position-map .position-field-compact {
+  width: 102px;
+}
+
+.player-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 30px;
+  margin-top: 0.15rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(157, 174, 190, 0.2);
+}
+
+.player-card-report-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.player-card-report-icon {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
 }
 
 .player-card-link:hover .card,
@@ -655,5 +839,29 @@ h1 {
 
   .average-rating-row {
     grid-template-columns: 1fr;
+  }
+
+  .player-detail-overview {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .player-detail-identity {
+    flex-direction: column;
+    gap: 1.25rem;
+    text-align: center;
+  }
+
+  .player-detail-data {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .player-detail-data .d-flex {
+    justify-content: center;
+  }
+
+  .player-detail-position-map {
+    grid-column: auto;
   }
 }

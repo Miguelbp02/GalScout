@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import logoAppOjeo from '../assets/logoAppOjeo.png'
 import playerPlaceholder from '../assets/player-placeholder.png'
 import PlayerAverageRatings from '../components/PlayerAverageRatings'
+import PlayerProfileRadar from '../components/PlayerProfileRadar'
 import GeneralRatingForm from '../components/GeneralRatingForm'
 import GeneralRatingList from '../components/GeneralRatingList'
 import PlayerObservationForm from '../components/PlayerObservationForm'
@@ -216,16 +217,15 @@ function PlayerDetailPage() {
         <>
           <section className="card mt-5 shadow-sm">
             <div className="card-body p-4">
-              <div className="row align-items-center g-4">
-                <div className="col-12 col-md-auto text-center">
+              <div className="player-detail-overview">
+                <div className="player-detail-identity">
                   <img
                     className="player-detail-avatar"
                     src={playerPlaceholder}
                     alt=""
                     aria-hidden="true"
                   />
-                </div>
-                <div className="col">
+                  <div className="player-detail-data">
                   <div className="d-flex align-items-center gap-2 mb-3">
                     <h2 className="h3 mb-0">{jugador.nombre}</h2>
                     <span
@@ -240,20 +240,27 @@ function PlayerDetailPage() {
                   </div>
 
                   <dl className="row mb-0">
-                    <dt className="col-sm-4 text-body-secondary">Edad</dt>
-                    <dd className="col-sm-8">{jugador.edad} años</dd>
+                    <dt className="col-sm-6 text-body-secondary">Edad</dt>
+                    <dd className="col-sm-6">{jugador.edad} años</dd>
 
-                    <dt className="col-sm-4 text-body-secondary">Altura</dt>
-                    <dd className="col-sm-8">{jugador.alturaCm} cm</dd>
+                    <dt className="col-sm-6 text-body-secondary">Altura</dt>
+                    <dd className="col-sm-6">{jugador.alturaCm} cm</dd>
 
-                    <dt className="col-sm-4 text-body-secondary">Pierna dominante</dt>
-                    <dd className="col-sm-8 mb-0 player-dominant-foot-value">
+                    <dt className="col-sm-6 text-body-secondary">Pierna dominante</dt>
+                    <dd className="col-sm-6 mb-0 player-dominant-foot-value">
                       <DominantFootIndicator piernaDominante={jugador.piernaDominante} />
                     </dd>
                   </dl>
                 </div>
+                </div>
+                <div className="player-detail-radar">
+                  <PlayerProfileRadar
+                    jugadorId={jugador.id}
+                    versionActualizacion={versionValoraciones}
+                  />
+                </div>
                 {perfilPosicionalCargado && (
-                  <div className="col-12 col-md-auto text-center me-md-4">
+                  <div className="player-detail-position-map">
                     <PositionFieldSelector
                       disabled
                       etiquetas="ninguna"

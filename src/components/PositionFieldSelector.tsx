@@ -29,6 +29,7 @@ interface PositionFieldSelectorProps {
   etiquetas?: EstiloEtiquetas
   mostrarEstado?: boolean
   modo?: 'edicion' | 'resumen'
+  mostrarLeyendaResumen?: boolean
   onCambiarEstadoPosicion?: (posicionId: number, tipo: TipoPosicion) => void
 }
 
@@ -124,6 +125,7 @@ function PositionFieldSelector({
   etiquetas = 'recorte',
   mostrarEstado = false,
   modo = 'edicion',
+  mostrarLeyendaResumen = true,
   onCambiarEstadoPosicion = () => {},
 }: PositionFieldSelectorProps) {
   const esResumen = modo === 'resumen'
@@ -186,7 +188,7 @@ function PositionFieldSelector({
         </div>
       )}
 
-      {esResumen && (
+      {esResumen && mostrarLeyendaResumen && (
         <div className="position-summary-header">
           <span className="position-summary-title">Posición:</span>
           <div className="position-field-legend small">

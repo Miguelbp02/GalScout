@@ -11,7 +11,22 @@ interface JugadorFila {
   estado: Jugador['estado']
 }
 
-function mapearJugador(jugador: JugadorFila): Jugador {
+interface PosicionJugadorFila {
+  jugador_id: string
+  posicion_id: number
+  tipo: 'natural' | 'apta'
+}
+
+interface ObservacionJugadorFila {
+  jugador_id: string
+}
+
+function mapearJugador(
+  jugador: JugadorFila,
+  posicionesNaturalesIds: number[] = [],
+  posicionesAptasIds: number[] = [],
+  totalInformes = 0,
+): Jugador {
   return {
     id: jugador.id,
     nombre: jugador.nombre,
@@ -20,6 +35,9 @@ function mapearJugador(jugador: JugadorFila): Jugador {
     posicion: jugador.posicion,
     piernaDominante: jugador.pierna_dominante,
     estado: jugador.estado,
+    posicionesNaturalesIds,
+    posicionesAptasIds,
+    totalInformes,
   }
 }
 
@@ -27,16 +45,69 @@ const columnasJugador =
   'id, nombre, edad, altura_cm, posicion, pierna_dominante, estado'
 
 export async function obtenerJugadores(): Promise<Jugador[]> {
-  const { data, error } = await supabase
-    .from('jugadores')
-    .select(columnasJugador)
-    .order('created_at', { ascending: false })
+  const [respuestaJugadores, respuestaPosiciones, respuestaObservaciones] =
+    await Promise.all([
+      supabase
+        .from('jugadores')
+        .select(columnasJugador)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('jugadores_posiciones')
+        .select('jugador_id, posicion_id, tipo'),
+      supabase.from('observaciones_jugador').select('jugador_id'),
+    ])
 
-  if (error) {
-    throw new Error(error.message)
+  if (respuestaJugadores.error) {
+    throw new Error(respuestaJugadores.error.message)
   }
 
-  return (data as JugadorFila[]).map(mapearJugador)
+  if (respuestaPosiciones.error) {
+    throw new Error(respuestaPosiciones.error.message)
+  }
+
+  if (respuestaObservaciones.error) {
+    throw new Error(respuestaObservaciones.error.message)
+  }
+
+  const posicionesPorJugador = new Map<
+    string,
+    { naturales: number[]; aptas: number[] }
+  >()
+
+  for (const posicion of respuestaPosiciones.data as PosicionJugadorFila[]) {
+    const perfil = posicionesPorJugador.get(posicion.jugador_id) ?? {
+      naturales: [],
+      aptas: [],
+    }
+
+    if (posicion.tipo === 'natural') {
+      perfil.naturales.push(posicion.posicion_id)
+    } else {
+      perfil.aptas.push(posicion.posicion_id)
+    }
+
+    posicionesPorJugador.set(posicion.jugador_id, perfil)
+  }
+
+  const informesPorJugador = new Map<string, number>()
+
+  for (const observacion of respuestaObservaciones.data as ObservacionJugadorFila[]) {
+    informesPorJugador.set(
+      observacion.jugador_id,
+      (informesPorJugador.get(observacion.jugador_id) ?? 0) + 1,
+    )
+  }
+
+  return (respuestaJugadores.data as JugadorFila[]).map((jugador) => {
+    const perfil = posicionesPorJugador.get(jugador.id)
+
+    return mapearJugador(
+      jugador,
+      perfil?.naturales,
+      perfil?.aptas,
+      informesPorJugador.get(jugador.id) ?? 0,
+    )
+  })
 }
 
 export async function obtenerJugadorPorId(id: string): Promise<Jugador | null> {

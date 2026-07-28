@@ -1,0 +1,265 @@
+import { useEffect, useState, type CSSProperties } from 'react'
+import { obtenerPosiciones } from '../services/positionService'
+import {
+  filtrosJugadoresIniciales,
+  limitesFiltrosJugadores,
+  type FiltrosJugadores,
+} from '../types/filtrosJugador'
+import type { Posicion } from '../types/posicion'
+
+interface PlayerFiltersProps {
+  filtros: FiltrosJugadores
+  onCambiarFiltros: (filtros: FiltrosJugadores) => void
+}
+
+function PlayerFilters({ filtros, onCambiarFiltros }: PlayerFiltersProps) {
+  const [abierto, setAbierto] = useState(false)
+  const [posiciones, setPosiciones] = useState<Posicion[]>([])
+  const [errorPosiciones, setErrorPosiciones] = useState(false)
+
+  useEffect(() => {
+    async function cargarPosiciones() {
+      try {
+        setPosiciones(await obtenerPosiciones())
+      } catch {
+        setErrorPosiciones(true)
+      }
+    }
+
+    void cargarPosiciones()
+  }, [])
+
+  const totalFiltrosActivos = [
+    Boolean(filtros.nombre),
+    filtros.edadMinima !== limitesFiltrosJugadores.edadMinima ||
+      filtros.edadMaxima !== limitesFiltrosJugadores.edadMaxima,
+    filtros.alturaMinima !== limitesFiltrosJugadores.alturaMinima ||
+      filtros.alturaMaxima !== limitesFiltrosJugadores.alturaMaxima,
+    Boolean(filtros.piernaDominante),
+    Boolean(filtros.estado),
+    Boolean(filtros.posicionNatural),
+  ].filter(Boolean).length
+
+  function cambiarFiltro(campo: keyof FiltrosJugadores, valor: string) {
+    onCambiarFiltros({ ...filtros, [campo]: valor })
+  }
+
+  function cambiarEdadMinima(valor: number) {
+    onCambiarFiltros({
+      ...filtros,
+      edadMinima: Math.min(valor, filtros.edadMaxima),
+    })
+  }
+
+  function cambiarEdadMaxima(valor: number) {
+    onCambiarFiltros({
+      ...filtros,
+      edadMaxima: Math.max(valor, filtros.edadMinima),
+    })
+  }
+
+  function cambiarAlturaMinima(valor: number) {
+    onCambiarFiltros({
+      ...filtros,
+      alturaMinima: Math.min(valor, filtros.alturaMaxima),
+    })
+  }
+
+  function cambiarAlturaMaxima(valor: number) {
+    onCambiarFiltros({
+      ...filtros,
+      alturaMaxima: Math.max(valor, filtros.alturaMinima),
+    })
+  }
+
+  function estiloRango(minimo: number, maximo: number, valorMinimo: number, valorMaximo: number) {
+    const amplitud = maximo - minimo
+
+    return {
+      '--rango-inicio': `${((valorMinimo - minimo) / amplitud) * 100}%`,
+      '--rango-fin': `${((valorMaximo - minimo) / amplitud) * 100}%`,
+    } as CSSProperties
+  }
+
+  return (
+    <section className="player-filters mt-4" aria-label="Filtros de jugadores">
+      <div className="d-flex align-items-center gap-2">
+        <button
+          aria-expanded={abierto}
+          className="btn btn-outline-secondary"
+          type="button"
+          onClick={() => setAbierto((estaAbierto) => !estaAbierto)}
+        >
+          Filtrar jugadores
+          {totalFiltrosActivos > 0 && (
+            <span className="filter-count ms-2">{totalFiltrosActivos}</span>
+          )}
+        </button>
+
+        {totalFiltrosActivos > 0 && (
+          <button
+            className="btn btn-link btn-sm text-body-secondary"
+            type="button"
+            onClick={() => onCambiarFiltros(filtrosJugadoresIniciales)}
+          >
+            Limpiar filtros
+          </button>
+        )}
+      </div>
+
+      {abierto && (
+        <div className="filters-panel mt-3">
+          <div className="row g-3">
+            <div className="col-12">
+              <label className="form-label" htmlFor="filtro-nombre">
+                Buscar por nombre
+              </label>
+              <input
+                className="form-control"
+                id="filtro-nombre"
+                placeholder="Escribe un nombre o apellido"
+                type="search"
+                value={filtros.nombre}
+                onChange={(evento) => cambiarFiltro('nombre', evento.target.value)}
+              />
+            </div>
+
+            <div className="col-12 col-md-6">
+              <div className="d-flex align-items-center justify-content-between gap-3 mb-2">
+                <label className="form-label mb-0" htmlFor="filtro-edad-minima">
+                  Edad
+                </label>
+                <span className="filter-range-value">
+                  {filtros.edadMinima}–{filtros.edadMaxima} años
+                </span>
+              </div>
+              <div
+                className="double-range"
+                style={estiloRango(
+                  limitesFiltrosJugadores.edadMinima,
+                  limitesFiltrosJugadores.edadMaxima,
+                  filtros.edadMinima,
+                  filtros.edadMaxima,
+                )}
+              >
+                <input
+                  id="filtro-edad-minima"
+                  max={limitesFiltrosJugadores.edadMaxima}
+                  min={limitesFiltrosJugadores.edadMinima}
+                  type="range"
+                  value={filtros.edadMinima}
+                  onChange={(evento) => cambiarEdadMinima(Number(evento.target.value))}
+                />
+                <input
+                  aria-label="Edad máxima"
+                  max={limitesFiltrosJugadores.edadMaxima}
+                  min={limitesFiltrosJugadores.edadMinima}
+                  type="range"
+                  value={filtros.edadMaxima}
+                  onChange={(evento) => cambiarEdadMaxima(Number(evento.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="col-12 col-md-6">
+              <div className="d-flex align-items-center justify-content-between gap-3 mb-2">
+                <label className="form-label mb-0" htmlFor="filtro-altura-minima">
+                  Altura
+                </label>
+                <span className="filter-range-value">
+                  {filtros.alturaMinima}–{filtros.alturaMaxima} cm
+                </span>
+              </div>
+              <div
+                className="double-range"
+                style={estiloRango(
+                  limitesFiltrosJugadores.alturaMinima,
+                  limitesFiltrosJugadores.alturaMaxima,
+                  filtros.alturaMinima,
+                  filtros.alturaMaxima,
+                )}
+              >
+                <input
+                  id="filtro-altura-minima"
+                  max={limitesFiltrosJugadores.alturaMaxima}
+                  min={limitesFiltrosJugadores.alturaMinima}
+                  type="range"
+                  value={filtros.alturaMinima}
+                  onChange={(evento) => cambiarAlturaMinima(Number(evento.target.value))}
+                />
+                <input
+                  aria-label="Altura máxima"
+                  max={limitesFiltrosJugadores.alturaMaxima}
+                  min={limitesFiltrosJugadores.alturaMinima}
+                  type="range"
+                  value={filtros.alturaMaxima}
+                  onChange={(evento) => cambiarAlturaMaxima(Number(evento.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="col-12 col-md-4">
+              <label className="form-label" htmlFor="filtro-pierna">
+                Pierna dominante
+              </label>
+              <select
+                className="form-select"
+                id="filtro-pierna"
+                value={filtros.piernaDominante}
+                onChange={(evento) => cambiarFiltro('piernaDominante', evento.target.value)}
+              >
+                <option value="">Cualquier pierna</option>
+                <option value="Derecha">Derecha</option>
+                <option value="Izquierda">Izquierda</option>
+                <option value="Ambas">Ambas</option>
+              </select>
+            </div>
+
+            <div className="col-12 col-md-4">
+              <label className="form-label" htmlFor="filtro-estado">
+                Estado
+              </label>
+              <select
+                className="form-select"
+                id="filtro-estado"
+                value={filtros.estado}
+                onChange={(evento) => cambiarFiltro('estado', evento.target.value)}
+              >
+                <option value="">Cualquier estado</option>
+                <option value="En equipo">En equipo</option>
+                <option value="Libre">Libre</option>
+              </select>
+            </div>
+
+            <div className="col-12 col-md-4">
+              <label className="form-label" htmlFor="filtro-posicion">
+                Posición natural
+              </label>
+              <select
+                className="form-select"
+                disabled={errorPosiciones}
+                id="filtro-posicion"
+                value={filtros.posicionNatural}
+                onChange={(evento) => cambiarFiltro('posicionNatural', evento.target.value)}
+              >
+                <option value="">Cualquier posición</option>
+                {posiciones.map((posicion) => (
+                  <option key={posicion.id} value={posicion.nombre}>
+                    {posicion.nombre}
+                  </option>
+                ))}
+              </select>
+              {errorPosiciones && (
+                <p className="small text-danger mt-1 mb-0">
+                  No se han podido cargar las posiciones.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+export default PlayerFilters

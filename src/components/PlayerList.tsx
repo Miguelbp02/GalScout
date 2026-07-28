@@ -1,0 +1,45 @@
+import type { Jugador } from '../types/jugador'
+import PlayerCard from './PlayerCard'
+
+interface PlayerListProps {
+  jugadores: Jugador[]
+  hayFiltrosActivos?: boolean
+}
+
+function PlayerList({ jugadores, hayFiltrosActivos = false }: PlayerListProps) {
+  return (
+    <section className="py-5" aria-labelledby="player-list-title">
+      <div className="d-flex align-items-center justify-content-between mb-4">
+        <h2 id="player-list-title" className="h4 mb-0">
+          Jugadores registrados
+        </h2>
+        <span className="text-body-secondary">
+          {jugadores.length} jugadores
+        </span>
+      </div>
+
+      <div className="row g-4">
+        {jugadores.length === 0 ? (
+          <div className="col-12">
+            <p className="empty-player-list mb-0 rounded border p-4 text-center text-body-secondary">
+              {hayFiltrosActivos
+                ? 'No hay jugadores que cumplan los filtros seleccionados.'
+                : 'Todavía no hay jugadores registrados en Supabase.'}
+            </p>
+          </div>
+        ) : (
+          jugadores.map((jugador) => (
+            <div
+              className="col-12 col-md-6 col-lg-4"
+              key={jugador.id}
+            >
+              <PlayerCard jugador={jugador} />
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  )
+}
+
+export default PlayerList

@@ -1,0 +1,45 @@
+:root {
+  --app-background: #111315;
+  --app-surface: #181c20;
+  --app-surface-raised: #20252b;
+  --app-border: #46515d;
+  --app-text: #edf5fb;
+  --app-muted: #aab3bc;
+  --app-accent: #61a96b;
+  --app-action: #4d83b5;
+
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--app-text);
+  background-color: var(--app-background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background-color: var(--app-background);
+  background-image:
+    linear-gradient(rgba(10, 13, 15, 0.86), rgba(10, 13, 15, 0.86)),
+    url('./assets/sarriena-2.webp');
+  background-position: center;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+button {
+  cursor: pointer;
+}
+
+@media (max-width: 1120px) {
+  body {
+    background-image: none;
+  }
+}

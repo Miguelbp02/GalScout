@@ -1,0 +1,73 @@
+.pierna-dominante {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.pierna-pies {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.pierna-pie-boton {
+  display: block;
+  padding: 3px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pierna-pie-boton:not(:disabled) {
+  cursor: pointer;
+}
+
+.pierna-pie-boton:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.pierna-pie {
+  display: block;
+  width: var(--pierna-tamano, 38px);
+  height: auto;
+  color: rgba(255, 255, 255, 0.13);
+  transition: color 0.15s ease, filter 0.15s ease, transform 0.15s ease;
+}
+
+.pierna-pie-activa {
+  color: #3be8c8;
+  filter: drop-shadow(0 0 4px rgba(59, 232, 200, 0.42));
+}
+
+.pierna-pie-boton:not(:disabled):hover .pierna-pie:not(.pierna-pie-activa) {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.pierna-pie-boton:not(:disabled):hover .pierna-pie {
+  transform: translateY(-2px);
+}
+
+.pierna-etiqueta {
+  min-width: 5.6rem;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.player-card-link .pierna-dominante {
+  --pierna-tamano: 27px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pierna-pie {
+    transition: none;
+  }
+
+  .pierna-pie-boton:not(:disabled):hover .pierna-pie {
+    transform: none;
+  }
+}

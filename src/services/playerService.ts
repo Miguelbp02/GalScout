@@ -9,6 +9,7 @@ interface JugadorFila {
   posicion: string
   pierna_dominante: Jugador['piernaDominante']
   estado: Jugador['estado']
+  categoria: Jugador['categoria']
 }
 
 interface PosicionJugadorFila {
@@ -35,6 +36,7 @@ function mapearJugador(
     posicion: jugador.posicion,
     piernaDominante: jugador.pierna_dominante,
     estado: jugador.estado,
+    categoria: jugador.categoria,
     posicionesNaturalesIds,
     posicionesAptasIds,
     totalInformes,
@@ -42,7 +44,7 @@ function mapearJugador(
 }
 
 const columnasJugador =
-  'id, nombre, edad, altura_cm, posicion, pierna_dominante, estado'
+  'id, nombre, edad, altura_cm, posicion, pierna_dominante, estado, categoria'
 
 export async function obtenerJugadores(): Promise<Jugador[]> {
   const [respuestaJugadores, respuestaPosiciones, respuestaObservaciones] =
@@ -164,6 +166,7 @@ export async function crearJugador(jugador: NuevoJugador): Promise<Jugador> {
       posicion: resumenPosicionesNaturales,
       pierna_dominante: jugador.piernaDominante,
       estado: jugador.estado,
+      categoria: jugador.categoria || null,
     })
     .select(columnasJugador)
     .single()
@@ -240,6 +243,7 @@ export async function actualizarJugador(
       posicion: resumenPosicionesNaturales,
       pierna_dominante: jugador.piernaDominante,
       estado: jugador.estado,
+      categoria: jugador.categoria || null,
     })
     .eq('id', jugadorId)
     .select(columnasJugador)
@@ -283,4 +287,21 @@ export async function actualizarJugador(
   }
 
   return mapearJugador(data as JugadorFila)
+}
+
+export async function eliminarJugador(jugadorId: string): Promise<void> {
+  const { data, error } = await supabase
+    .from('jugadores')
+    .delete()
+    .eq('id', jugadorId)
+    .select('id')
+    .maybeSingle()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  if (!data) {
+    throw new Error('No se ha encontrado el jugador que se quería eliminar.')
+  }
 }

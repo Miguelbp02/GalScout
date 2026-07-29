@@ -51,6 +51,12 @@ function PlayerCard({ jugador, posiciones }: PlayerCardProps) {
                 <h2 className="h5 card-title mb-1">{jugador.nombre}</h2>
                 <p className="player-card-measures mb-0">
                   {jugador.edad} años <span aria-hidden="true">&middot;</span> {jugador.alturaCm} cm
+                  {jugador.categoria && (
+                    <>
+                      <span aria-hidden="true"> &middot; </span>
+                      {jugador.categoria}
+                    </>
+                  )}
                 </p>
               </div>
             </div>

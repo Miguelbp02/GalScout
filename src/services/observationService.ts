@@ -142,3 +142,16 @@ export async function crearObservacionJugador(
     throw new Error(errorValoraciones.message)
   }
 }
+
+export async function eliminarObservaciones(ids: string[]): Promise<void> {
+  if (ids.length === 0) return
+
+  const { error } = await supabase
+    .from('observaciones_jugador')
+    .delete()
+    .in('id', ids)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}

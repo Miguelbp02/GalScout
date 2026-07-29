@@ -12,6 +12,7 @@ import PositionFieldSelector from '../components/PositionFieldSelector'
 import DominantFootIndicator from '../components/DominantFootIndicator'
 import {
   crearObservacionJugador,
+  eliminarObservaciones,
   obtenerObservacionesJugador,
 } from '../services/observationService'
 import { obtenerJugadorPorId } from '../services/playerService'
@@ -21,6 +22,7 @@ import {
 } from '../services/positionService'
 import {
   crearValoracionGeneral,
+  eliminarValoracionesGenerales,
   obtenerValoracionesGeneralesJugador,
 } from '../services/generalRatingService'
 import type { Jugador } from '../types/jugador'
@@ -50,6 +52,7 @@ function PlayerDetailPage() {
   const [posicionesNaturalesIds, setPosicionesNaturalesIds] = useState<number[]>([])
   const [posicionesAptasIds, setPosicionesAptasIds] = useState<number[]>([])
   const [perfilPosicionalCargado, setPerfilPosicionalCargado] = useState(false)
+  const [alturaFormularioObservacion, setAlturaFormularioObservacion] = useState(0)
 
   useEffect(() => {
     const id = jugadorId ?? ''
@@ -177,20 +180,34 @@ function PlayerDetailPage() {
     setValoracionesGenerales(valoracionesActualizadas)
   }
 
+  async function eliminarObservacionesSeleccionadas(ids: string[]) {
+    if (!jugador) return
+
+    await eliminarObservaciones(ids)
+    setObservaciones(await obtenerObservacionesJugador(jugador.id))
+    setVersionValoraciones((versionActual) => versionActual + 1)
+  }
+
+  async function eliminarValoracionesGeneralesSeleccionadas(ids: string[]) {
+    if (!jugador) return
+
+    await eliminarValoracionesGenerales(ids)
+    setValoracionesGenerales(await obtenerValoracionesGeneralesJugador(jugador.id))
+  }
+
   const errorVisible = jugadorId
     ? error
     : 'No se ha recibido un identificador de jugador válido.'
 
   return (
-    <main className="app-shell">
-      <header className="app-header d-flex align-items-center justify-content-between gap-3">
+    <main className="app-shell player-detail-shell">
+      <header className="app-header player-detail-header d-flex align-items-center justify-content-between gap-3">
         <div className="app-brand">
           <div className="app-logo-crop app-logo-crop-header">
             <img src={logoAppOjeo} alt="Logo de Ojeo Galicia" />
           </div>
           <div>
             <p className="app-kicker">Ojeo</p>
-            <h1>{jugador?.nombre ?? 'Ficha de jugador'}</h1>
           </div>
         </div>
         <div className="d-flex flex-wrap justify-content-end gap-2">
@@ -215,8 +232,8 @@ function PlayerDetailPage() {
 
       {jugador && !cargando && !errorVisible && (
         <>
-          <section className="card mt-5 shadow-sm">
-            <div className="card-body p-4">
+          <section className="card player-detail-summary mt-4 shadow-sm">
+            <div className="card-body p-3">
               <div className="player-detail-overview">
                 <div className="player-detail-identity">
                   <img
@@ -245,6 +262,13 @@ function PlayerDetailPage() {
 
                     <dt className="col-sm-6 text-body-secondary">Altura</dt>
                     <dd className="col-sm-6">{jugador.alturaCm} cm</dd>
+
+                    {jugador.categoria && (
+                      <>
+                        <dt className="col-sm-6 text-body-secondary">Categoría</dt>
+                        <dd className="col-sm-6">{jugador.categoria}</dd>
+                      </>
+                    )}
 
                     <dt className="col-sm-6 text-body-secondary">Pierna dominante</dt>
                     <dd className="col-sm-6 mb-0 player-dominant-foot-value">
@@ -284,13 +308,18 @@ function PlayerDetailPage() {
 
           <div className="row g-4 mt-1">
             <div className="col-12 col-xl-5">
-              <PlayerObservationForm onCrearObservacion={añadirObservacion} />
+              <PlayerObservationForm
+                onCrearObservacion={añadirObservacion}
+                onAlturaCambiar={setAlturaFormularioObservacion}
+              />
             </div>
 
             <div className="col-12 col-xl-7">
               <PlayerObservationList
+                alturaMaxima={alturaFormularioObservacion}
                 cargando={observacionesCargando}
                 error={errorObservaciones}
+                onEliminarObservaciones={eliminarObservacionesSeleccionadas}
                 observaciones={observaciones}
               />
             </div>
@@ -309,6 +338,7 @@ function PlayerDetailPage() {
               <GeneralRatingList
                 cargando={valoracionesGeneralesCargando}
                 error={errorValoracionesGenerales}
+                onEliminarValoraciones={eliminarValoracionesGeneralesSeleccionadas}
                 valoraciones={valoracionesGenerales}
               />
             </div>

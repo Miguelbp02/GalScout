@@ -1,10 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { obtenerCriteriosScouting } from '../services/criteriaService'
 import type { CriterioScouting, GrupoCriterio } from '../types/criterio'
 import type { NuevaObservacion } from '../types/observacion'
 
 interface PlayerObservationFormProps {
   onCrearObservacion: (observacion: NuevaObservacion) => Promise<void>
+  onAlturaCambiar?: (altura: number) => void
 }
 
 const grupos: GrupoCriterio[] = ['Físico', 'Técnico', 'Táctico', 'Mental']
@@ -15,7 +16,9 @@ function obtenerFechaActual() {
 
 function PlayerObservationForm({
   onCrearObservacion,
+  onAlturaCambiar,
 }: PlayerObservationFormProps) {
+  const tarjetaRef = useRef<HTMLElement>(null)
   const [fechaObservacion, setFechaObservacion] = useState(obtenerFechaActual)
   const [notas, setNotas] = useState('')
   const [criterios, setCriterios] = useState<CriterioScouting[]>([])
@@ -38,6 +41,21 @@ function PlayerObservationForm({
 
     void cargarCriterios()
   }, [])
+
+  useEffect(() => {
+    const tarjeta = tarjetaRef.current
+    if (!tarjeta || !onAlturaCambiar) return
+
+    const notificarAltura = () => {
+      onAlturaCambiar(Math.ceil(tarjeta.getBoundingClientRect().height))
+    }
+
+    const observador = new ResizeObserver(notificarAltura)
+    observador.observe(tarjeta)
+    notificarAltura()
+
+    return () => observador.disconnect()
+  }, [onAlturaCambiar])
 
   function actualizarPuntuacion(criterioId: number, valor: string) {
     setPuntuaciones((puntuacionesActuales) => ({
@@ -88,7 +106,11 @@ function PlayerObservationForm({
   }
 
   return (
-    <section className="card h-100 shadow-sm" aria-labelledby="new-observation-title">
+    <section
+      ref={tarjetaRef}
+      className="card shadow-sm"
+      aria-labelledby="new-observation-title"
+    >
       <div className="card-body p-4">
         <h2 id="new-observation-title" className="h4 mb-4">
           Añadir observación

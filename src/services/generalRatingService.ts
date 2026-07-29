@@ -77,3 +77,16 @@ export async function crearValoracionGeneral(
     throw new Error(error.message)
   }
 }
+
+export async function eliminarValoracionesGenerales(ids: string[]): Promise<void> {
+  if (ids.length === 0) return
+
+  const { error } = await supabase
+    .from('valoraciones_generales')
+    .delete()
+    .in('id', ids)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}

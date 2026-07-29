@@ -334,6 +334,37 @@
   color: #d8fa4d;
 }
 
+/* El formulario coloca el campo junto a los datos para que el alta y la
+   edición no obliguen a bajar hasta el botón de guardar en escritorio. */
+.player-form-position {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 440px;
+}
+
+.player-form-position .position-field {
+  width: min(100%, 260px);
+}
+
+.player-form-position .position-field-tilted {
+  transform: translateY(-36px) rotateX(var(--inclinacion)) scale(1);
+}
+
+@media (max-width: 991.98px) {
+  .player-form-position {
+    min-height: 0;
+  }
+
+  .player-form-position .position-field {
+    width: min(100%, 300px);
+  }
+
+  .player-form-position .position-field-tilted {
+    transform: translateY(-56px) rotateX(var(--inclinacion)) scale(1.04);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .position-zone {
     transition: none;

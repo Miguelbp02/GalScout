@@ -53,15 +53,14 @@ function PlayerAverageRatings({
   }, [jugadorId, versionActualizacion])
 
   return (
-    <section className="card h-100 shadow-sm" aria-labelledby="valoraciones-title">
-      <div className="card-body p-4">
-        <h2 id="valoraciones-title" className="h4 mb-2">
+    <section
+      className="card h-100 shadow-sm player-average-ratings"
+      aria-labelledby="valoraciones-title"
+    >
+      <div className="card-body p-3 p-md-4">
+        <h2 id="valoraciones-title" className="h4 mb-1">
           Valoraciones medias
         </h2>
-        <p className="text-body-secondary small mb-4">
-          Cada media indica también cuántos informes la respaldan.
-        </p>
-
         {cargando && <p className="text-body-secondary mb-0">Cargando valoraciones…</p>}
 
         {error && (
@@ -77,7 +76,7 @@ function PlayerAverageRatings({
         )}
 
         {!cargando && !error && valoraciones.length > 0 && (
-          <div className="row g-4">
+          <div className="row g-3">
             {grupos.map((grupo) => {
               const valoracionesDelGrupo = valoraciones.filter(
                 (valoracion) => valoracion.grupo === grupo,
@@ -86,29 +85,29 @@ function PlayerAverageRatings({
               if (valoracionesDelGrupo.length === 0) return null
 
               return (
-                <section className="col-12 col-lg-6" key={grupo}>
-                  <h3 className="h6 text-uppercase text-body-secondary mb-3">
+                <section className="col-12 col-md-6 col-xxl-3" key={grupo}>
+                  <h3 className="h6 text-uppercase text-body-secondary mb-2">
                     {grupo}
                   </h3>
                   <div className="d-grid gap-2">
                     {valoracionesDelGrupo.map((valoracion) => (
                       <div className="average-rating-row" key={valoracion.id}>
-                        <span>{valoracion.nombre}</span>
-                        <span className="average-rating-data">
-                          <span className="d-flex align-items-center justify-content-between gap-3">
-                            <strong
-                              className={`rating-value ${obtenerClaseNivel(
-                                valoracion.media,
-                              )}`}
-                            >
-                              {formatearMedia(valoracion.media)} / 20
-                            </strong>
-                            <small className="text-body-secondary text-end">
+                        <div className="average-rating-heading">
+                          <span className="average-rating-name">{valoracion.nombre}</span>
+                          <small className="text-body-secondary text-end">
                             {valoracion.totalInformes === 1
                               ? '1 informe'
                               : `${valoracion.totalInformes} informes`}
-                            </small>
-                          </span>
+                          </small>
+                        </div>
+                        <span className="average-rating-data">
+                          <strong
+                            className={`rating-value ${obtenerClaseNivel(
+                              valoracion.media,
+                            )}`}
+                          >
+                            {formatearMedia(valoracion.media)}
+                          </strong>
                           <span
                             aria-label={`Media de ${valoracion.nombre}: ${formatearMedia(
                               valoracion.media,

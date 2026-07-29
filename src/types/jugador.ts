@@ -2,6 +2,8 @@ export type EstadoJugador = 'En equipo' | 'Libre'
 
 export type PiernaDominante = 'Derecha' | 'Izquierda' | 'Ambas'
 
+export type CategoriaJugador = 'Cadete' | 'Juvenil' | 'Senior'
+
 export interface DatosJugador {
   nombre: string
   edad: number
@@ -10,6 +12,7 @@ export interface DatosJugador {
   posicion: string
   piernaDominante: PiernaDominante
   estado: EstadoJugador
+  categoria: CategoriaJugador | null
 }
 
 export interface Jugador extends DatosJugador {
@@ -27,4 +30,5 @@ export interface NuevoJugador {
   posicionesAptasIds: number[]
   piernaDominante: PiernaDominante
   estado: EstadoJugador
+  categoria: CategoriaJugador | ''
 }

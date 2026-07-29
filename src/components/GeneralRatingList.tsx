@@ -1,8 +1,11 @@
+import { useState } from 'react'
+import TrashIcon from './TrashIcon'
 import type { ValoracionGeneral } from '../types/valoracionGeneral'
 
 interface GeneralRatingListProps {
   cargando: boolean
   error: string | null
+  onEliminarValoraciones: (ids: string[]) => Promise<void>
   valoraciones: ValoracionGeneral[]
 }
 
@@ -25,15 +28,72 @@ function obtenerClaseNivel(puntuacion: number) {
 function GeneralRatingList({
   cargando,
   error,
+  onEliminarValoraciones,
   valoraciones,
 }: GeneralRatingListProps) {
+  const [modoEliminar, setModoEliminar] = useState(false)
+  const [idsSeleccionados, setIdsSeleccionados] = useState<string[]>([])
+
+  function alternarSeleccion(id: string) {
+    setIdsSeleccionados((idsActuales) =>
+      idsActuales.includes(id)
+        ? idsActuales.filter((idActual) => idActual !== id)
+        : [...idsActuales, id],
+    )
+  }
+
+  async function eliminarSeleccionadas() {
+    if (idsSeleccionados.length === 0) return
+    if (!window.confirm(`¿Eliminar ${idsSeleccionados.length} valoración${idsSeleccionados.length === 1 ? '' : 'es'}? Esta acción no se puede deshacer.`)) return
+
+    await onEliminarValoraciones(idsSeleccionados)
+    setIdsSeleccionados([])
+    setModoEliminar(false)
+  }
+
   return (
     <div className="mt-4">
       <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
         <h3 className="h5 mb-0">Historial de valoraciones generales</h3>
-        <span className="small text-body-secondary">
-          {valoraciones.length} registros
-        </span>
+        {modoEliminar ? (
+          <div className="d-flex align-items-center gap-2">
+            <button
+              className="btn btn-sm btn-outline-danger"
+              disabled={idsSeleccionados.length === 0}
+              type="button"
+              onClick={() => void eliminarSeleccionadas()}
+            >
+              Eliminar ({idsSeleccionados.length})
+            </button>
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              type="button"
+              onClick={() => {
+                setIdsSeleccionados([])
+                setModoEliminar(false)
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <div className="d-flex align-items-center gap-2">
+            <span className="small text-body-secondary">
+              {valoraciones.length} registros
+            </span>
+            <button
+              aria-label="Seleccionar valoraciones generales para eliminar"
+              className="history-delete-trigger"
+              disabled={valoraciones.length === 0}
+              title="Eliminar valoraciones"
+              type="button"
+              onClick={() => setModoEliminar(true)}
+            >
+              <TrashIcon />
+              Borrar
+            </button>
+          </div>
+        )}
       </div>
 
       {cargando && <p className="text-body-secondary">Cargando historial…</p>}
@@ -55,6 +115,18 @@ function GeneralRatingList({
           {valoraciones.map((valoracion) => (
             <details className="general-rating-item" key={valoracion.id}>
               <summary className="general-rating-summary">
+                {modoEliminar && (
+                  <input
+                    aria-label={`Seleccionar valoración del ${formatearFecha(
+                      valoracion.fechaValoracion,
+                    )}`}
+                    checked={idsSeleccionados.includes(valoracion.id)}
+                    className="history-delete-checkbox"
+                    type="checkbox"
+                    onChange={() => alternarSeleccion(valoracion.id)}
+                    onClick={(evento) => evento.stopPropagation()}
+                  />
+                )}
                 <span>
                   <strong>{formatearFecha(valoracion.fechaValoracion)}</strong>
                   <span className="small text-body-secondary ms-3">

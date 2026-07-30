@@ -1,16 +1,22 @@
 import { useRef, useState } from 'react'
 import FormattedNotes from './FormattedNotes'
 import HistoryListSkeleton from './HistoryListSkeleton'
+import ObservationEditForm from './ObservationEditForm'
+import PencilIcon from './PencilIcon'
 import TrashIcon from './TrashIcon'
 import { obtenerAccionesObservacion } from '../services/observationService'
 import type { AccionObservacion } from '../types/accionObservacion'
-import type { ObservacionJugador } from '../types/observacion'
+import type { PerfilScouting } from '../types/criterio'
+import type { NuevaObservacion, ObservacionJugador } from '../types/observacion'
 
 interface PlayerObservationListProps {
   alturaMaxima?: number
   cargando: boolean
   error: string | null
+  perfilScouting: PerfilScouting
+  equipoActualJugador: string | null
   onEliminarObservaciones: (ids: string[]) => Promise<void>
+  onActualizarObservacion: (id: string, observacion: NuevaObservacion) => Promise<void>
   observaciones: ObservacionJugador[]
 }
 
@@ -31,7 +37,10 @@ function PlayerObservationList({
   alturaMaxima,
   cargando,
   error,
+  perfilScouting,
+  equipoActualJugador,
   onEliminarObservaciones,
+  onActualizarObservacion,
   observaciones,
 }: PlayerObservationListProps) {
   const historialRef = useRef<HTMLDivElement>(null)
@@ -39,6 +48,7 @@ function PlayerObservationList({
   const [idsSeleccionados, setIdsSeleccionados] = useState<string[]>([])
   const [eliminando, setEliminando] = useState(false)
   const [errorEliminacion, setErrorEliminacion] = useState<string | null>(null)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
   const [accionesPorObservacion, setAccionesPorObservacion] = useState<
     Record<string, AccionObservacion[]>
   >({})
@@ -193,6 +203,27 @@ function PlayerObservationList({
             {observaciones.map((observacion) => {
               const acciones = accionesPorObservacion[observacion.id] ?? []
 
+              if (editandoId === observacion.id) {
+                return (
+                  <div className="observation-item observation-item--editing" key={observacion.id}>
+                    <ObservationEditForm
+                      equipoActualJugador={equipoActualJugador}
+                      observacion={observacion}
+                      perfilScouting={perfilScouting}
+                      onCancelar={() => setEditandoId(null)}
+                      onEliminar={async () => {
+                        await onEliminarObservaciones([observacion.id])
+                        setEditandoId(null)
+                      }}
+                      onGuardar={async (datos) => {
+                        await onActualizarObservacion(observacion.id, datos)
+                        setEditandoId(null)
+                      }}
+                    />
+                  </div>
+                )
+              }
+
               return (
                 <details
                   className="observation-item"
@@ -225,6 +256,21 @@ function PlayerObservationList({
                         {observacion.autorNombre}
                       </span>
                     </span>
+                    {!modoEliminar && (
+                      <button
+                        aria-label="Editar este informe"
+                        className="observation-edit-trigger"
+                        title="Editar"
+                        type="button"
+                        onClick={(evento) => {
+                          evento.preventDefault()
+                          evento.stopPropagation()
+                          setEditandoId(observacion.id)
+                        }}
+                      >
+                        <PencilIcon size={14} />
+                      </button>
+                    )}
                     <span aria-hidden="true" className="observation-toggle">
                       ▸
                     </span>

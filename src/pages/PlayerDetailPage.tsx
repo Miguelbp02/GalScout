@@ -15,6 +15,7 @@ import DominantFootIndicator from '../components/DominantFootIndicator'
 import TeamHistoryForm from '../components/TeamHistoryForm'
 import TeamHistoryList from '../components/TeamHistoryList'
 import {
+  actualizarObservacionJugador,
   crearObservacionJugador,
   eliminarObservaciones,
   obtenerObservacionesJugador,
@@ -241,6 +242,17 @@ function PlayerDetailPage() {
     setVersionValoraciones((versionActual) => versionActual + 1)
   }
 
+  async function actualizarObservacionSeleccionada(
+    id: string,
+    observacion: NuevaObservacion,
+  ) {
+    if (!jugador) return
+
+    await actualizarObservacionJugador(id, observacion)
+    setObservaciones(await obtenerObservacionesJugador(jugador.id))
+    setVersionValoraciones((versionActual) => versionActual + 1)
+  }
+
   async function eliminarValoracionesGeneralesSeleccionadas(ids: string[]) {
     if (!jugador) return
 
@@ -450,9 +462,12 @@ function PlayerDetailPage() {
               <PlayerObservationList
                 alturaMaxima={alturaFormularioObservacion}
                 cargando={observacionesCargando}
+                equipoActualJugador={jugador.equipoActual}
                 error={errorObservaciones}
-                onEliminarObservaciones={eliminarObservacionesSeleccionadas}
                 observaciones={observaciones}
+                perfilScouting={perfilScouting}
+                onActualizarObservacion={actualizarObservacionSeleccionada}
+                onEliminarObservaciones={eliminarObservacionesSeleccionadas}
               />
             </div>
           </div>

@@ -805,14 +805,45 @@ h1 {
 .observation-summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   list-style: none;
 }
 
+.observation-summary > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+}
+
 .observation-summary::-webkit-details-marker {
   display: none;
+}
+
+.observation-edit-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.observation-item:hover .observation-edit-trigger,
+.observation-edit-trigger:focus-visible {
+  opacity: 1;
+}
+
+.observation-edit-trigger:hover,
+.observation-edit-trigger:focus-visible {
+  background: rgba(77, 131, 181, 0.14);
+  color: var(--app-action);
+  outline: none;
 }
 
 .observation-toggle {

@@ -204,6 +204,62 @@ export async function crearObservacionJugador(
   return observacionCreada.id as string
 }
 
+export async function actualizarObservacionJugador(
+  observacionId: string,
+  observacion: NuevaObservacion,
+): Promise<void> {
+  const [equipoJugador, equipoRival] = await Promise.all([
+    observacion.equipoJugador.trim()
+      ? obtenerOCrearEquipo(observacion.equipoJugador)
+      : Promise.resolve(null),
+    observacion.equipoRival.trim()
+      ? obtenerOCrearEquipo(observacion.equipoRival)
+      : Promise.resolve(null),
+  ])
+
+  const { error: errorObservacion } = await supabase
+    .from('observaciones_jugador')
+    .update({
+      fecha_observacion: observacion.fechaObservacion,
+      notas: observacion.notas.trim(),
+      tipo: observacion.tipo,
+      equipo_jugador_id: equipoJugador?.id ?? null,
+      equipo_rival_id: equipoRival?.id ?? null,
+      competicion: observacion.competicion.trim() || null,
+      jornada: observacion.jornada.trim() || null,
+    })
+    .eq('id', observacionId)
+
+  if (errorObservacion) {
+    throw new Error(errorObservacion.message)
+  }
+
+  const { error: errorBorrarValoraciones } = await supabase
+    .from('valoraciones_observacion')
+    .delete()
+    .eq('observacion_id', observacionId)
+
+  if (errorBorrarValoraciones) {
+    throw new Error(errorBorrarValoraciones.message)
+  }
+
+  if (observacion.valoraciones.length > 0) {
+    const { error: errorValoraciones } = await supabase
+      .from('valoraciones_observacion')
+      .insert(
+        observacion.valoraciones.map((valoracion) => ({
+          observacion_id: observacionId,
+          criterio_id: valoracion.criterioId,
+          puntuacion: valoracion.puntuacion,
+        })),
+      )
+
+    if (errorValoraciones) {
+      throw new Error(errorValoraciones.message)
+    }
+  }
+}
+
 export async function eliminarObservaciones(ids: string[]): Promise<void> {
   if (ids.length === 0) return
 

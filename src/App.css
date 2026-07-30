@@ -1999,9 +1999,20 @@ h1 {
 }
 
 .match-player-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.match-player-group {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.match-player-group--derecha {
+  justify-content: flex-end;
 }
 
 .match-player-chip {
@@ -2012,6 +2023,85 @@ h1 {
   font-size: 0.85rem;
   font-weight: 600;
   transition: opacity 0.15s ease;
+}
+
+.match-sustitucion {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.match-sustitucion-trigger {
+  padding: 6px 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.match-sustitucion-trigger:hover:not(:disabled),
+.match-sustitucion-trigger:focus-visible {
+  border-color: var(--app-action);
+  color: var(--app-text);
+  outline: none;
+}
+
+.match-sustitucion-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.match-sustitucion-panel {
+  position: absolute;
+  z-index: 6;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+  padding: 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  background-color: var(--app-surface-raised);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+}
+
+.match-sustitucion-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.match-sustitucion-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  background: transparent;
+  font-weight: 800;
+}
+
+.match-sustitucion-boton--entra {
+  border-color: rgba(97, 169, 107, 0.55);
+  color: #bff2d1;
+}
+
+.match-sustitucion-boton--sale {
+  border-color: rgba(207, 75, 84, 0.5);
+  color: #e88a90;
+}
+
+.match-sustitucion-boton:hover {
+  filter: brightness(1.3);
 }
 
 .match-pitch-field {

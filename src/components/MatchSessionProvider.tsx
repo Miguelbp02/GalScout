@@ -120,7 +120,13 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
   const iniciarSegundaParte = useCallback(() => {
     setSesion((actual) =>
       actual
-        ? { ...actual, estado: 'segunda_parte', parte: 2, corriendo: false }
+        ? {
+            ...actual,
+            estado: 'segunda_parte',
+            parte: 2,
+            corriendo: true,
+            ladoEquipoA: actual.ladoEquipoA === 'izquierda' ? 'derecha' : 'izquierda',
+          }
         : actual,
     )
   }, [])

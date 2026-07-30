@@ -31,6 +31,7 @@ function MatchNotebook() {
   const { mostrarToast } = useToast()
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const mencionRef = useRef<HTMLDetailsElement>(null)
   const [criteriosPorPerfil, setCriteriosPorPerfil] = useState<
     Partial<Record<PerfilScouting, CriterioScouting[]>>
   >({})
@@ -129,6 +130,10 @@ function MatchNotebook() {
         cursor: inicio + referencia.length,
       }
     })
+
+    if (mencionRef.current) {
+      mencionRef.current.open = false
+    }
   }
 
   async function guardarInforme() {
@@ -236,7 +241,7 @@ function MatchNotebook() {
                 T
               </button>
 
-              <details className="match-mencion-desplegable">
+              <details className="match-mencion-desplegable" ref={mencionRef}>
                 <summary>+ Mencionar acción</summary>
                 <div className="match-mencion-lista">
                   {accionesDelJugador.length === 0 && (

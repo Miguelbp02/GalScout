@@ -22,6 +22,7 @@ export interface AccionRegistrada {
   jugadorId: string
   etiquetaId: number
   etiquetaNombre: string
+  esSustitucion: boolean
   minuto: number
   parte: 1 | 2
   x: number

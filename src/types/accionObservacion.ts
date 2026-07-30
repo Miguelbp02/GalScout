@@ -8,6 +8,7 @@ export interface EtiquetaAccion {
   categoria: CategoriaEtiquetaAccion
   perfil: PerfilScouting
   orden: number
+  esSustitucion: boolean
 }
 
 export interface NuevaAccionObservacion {

@@ -8,6 +8,7 @@ interface EtiquetaFila {
   categoria: EtiquetaAccion['categoria']
   perfil: PerfilScouting
   orden: number
+  es_sustitucion: boolean
 }
 
 export async function obtenerEtiquetasAccion(
@@ -15,7 +16,7 @@ export async function obtenerEtiquetasAccion(
 ): Promise<EtiquetaAccion[]> {
   const { data, error } = await supabase
     .from('etiquetas_accion')
-    .select('id, nombre, categoria, perfil, orden')
+    .select('id, nombre, categoria, perfil, orden, es_sustitucion')
     .eq('activo', true)
     .eq('perfil', perfil)
     .order('orden', { ascending: true })
@@ -24,5 +25,12 @@ export async function obtenerEtiquetasAccion(
     throw new Error(error.message)
   }
 
-  return data as EtiquetaFila[]
+  return (data as EtiquetaFila[]).map((fila) => ({
+    id: fila.id,
+    nombre: fila.nombre,
+    categoria: fila.categoria,
+    perfil: fila.perfil,
+    orden: fila.orden,
+    esSustitucion: fila.es_sustitucion,
+  }))
 }

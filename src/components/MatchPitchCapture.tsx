@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { obtenerEtiquetasAccion } from '../services/actionTagService'
 import { useMatchSession } from './MatchSessionContext'
 import type { EtiquetaAccion } from '../types/accionObservacion'
+import type { EquipoSesion } from '../types/matchSession'
 
 function MatchPitchCapture() {
   const { sesion, agregarAccion, cambiarLadoEquipoA } = useMatchSession()
@@ -10,6 +11,8 @@ function MatchPitchCapture() {
   const [etiquetasPortero, setEtiquetasPortero] = useState<EtiquetaAccion[]>([])
   const [toque, setToque] = useState<{ x: number; y: number } | null>(null)
   const [etiquetaElegida, setEtiquetaElegida] = useState<EtiquetaAccion | null>(null)
+  const [sustitucionAbierta, setSustitucionAbierta] = useState(false)
+  const [errorEtiquetas, setErrorEtiquetas] = useState(false)
 
   const hayPortero = sesion?.jugadores.some(
     (jugador) => jugador.perfilScouting === 'portero',
@@ -17,16 +20,28 @@ function MatchPitchCapture() {
 
   useEffect(() => {
     obtenerEtiquetasAccion('campo')
-      .then(setEtiquetasCampo)
-      .catch(() => setEtiquetasCampo([]))
+      .then((etiquetas) => {
+        setEtiquetasCampo(etiquetas)
+        setErrorEtiquetas(false)
+      })
+      .catch(() => {
+        setEtiquetasCampo([])
+        setErrorEtiquetas(true)
+      })
   }, [])
 
   useEffect(() => {
     if (!hayPortero) return
 
     obtenerEtiquetasAccion('portero')
-      .then(setEtiquetasPortero)
-      .catch(() => setEtiquetasPortero([]))
+      .then((etiquetas) => {
+        setEtiquetasPortero(etiquetas)
+        setErrorEtiquetas(false)
+      })
+      .catch(() => {
+        setEtiquetasPortero([])
+        setErrorEtiquetas(true)
+      })
   }, [hayPortero])
 
   if (!sesion) return null
@@ -35,10 +50,25 @@ function MatchPitchCapture() {
     (sesion.estado === 'primera_parte' || sesion.estado === 'segunda_parte') &&
     sesion.corriendo
   const minutoActual = Math.floor(sesion.segundos / 60)
+  const equipoIzquierdaCodigo: EquipoSesion =
+    sesion.ladoEquipoA === 'izquierda' ? 'A' : 'B'
   const equipoIzquierda =
     sesion.ladoEquipoA === 'izquierda' ? sesion.nombreEquipoA : sesion.nombreEquipoB
   const equipoDerecha =
     sesion.ladoEquipoA === 'izquierda' ? sesion.nombreEquipoB : sesion.nombreEquipoA
+  const jugadoresIzquierda = sesion.jugadores.filter(
+    (jugador) => jugador.equipo === equipoIzquierdaCodigo,
+  )
+  const jugadoresDerecha = sesion.jugadores.filter(
+    (jugador) => jugador.equipo !== equipoIzquierdaCodigo,
+  )
+  const etiquetasCampoNormales = etiquetasCampo.filter((etiqueta) => !etiqueta.esSustitucion)
+  const etiquetaEntra = etiquetasCampo.find(
+    (etiqueta) => etiqueta.esSustitucion && etiqueta.nombre === 'Entra al campo',
+  )
+  const etiquetaSale = etiquetasCampo.find(
+    (etiqueta) => etiqueta.esSustitucion && etiqueta.nombre === 'Sale del campo',
+  )
 
   function manejarClicCampo(evento: React.MouseEvent<HTMLDivElement>) {
     if (!capturaActiva || !campoRef.current) return
@@ -63,6 +93,7 @@ function MatchPitchCapture() {
       jugadorId,
       etiquetaId: etiquetaElegida.id,
       etiquetaNombre: etiquetaElegida.nombre,
+      esSustitucion: false,
       minuto: minutoActual,
       x: Number(toque.x.toFixed(2)),
       y: Number(toque.y.toFixed(2)),
@@ -71,6 +102,21 @@ function MatchPitchCapture() {
 
     setToque(null)
     setEtiquetaElegida(null)
+  }
+
+  function registrarSustitucion(jugadorId: string, etiqueta: EtiquetaAccion) {
+    agregarAccion({
+      jugadorId,
+      etiquetaId: etiqueta.id,
+      etiquetaNombre: etiqueta.nombre,
+      esSustitucion: true,
+      minuto: minutoActual,
+      x: 50,
+      y: 50,
+      notaLibre: '',
+    })
+
+    setSustitucionAbierta(false)
   }
 
   const estadoTexto = !capturaActiva
@@ -100,8 +146,16 @@ function MatchPitchCapture() {
 
       <p className="match-estado-texto">{estadoTexto}</p>
 
+      {errorEtiquetas && (
+        <p className="alert alert-danger py-2 small mb-2" role="alert">
+          No se han podido cargar las etiquetas de acción. Puede que falte ejecutar la
+          migración 014_sustituciones.sql en Supabase. Recarga la página tras
+          comprobarlo.
+        </p>
+      )}
+
       <div className="match-tag-grid">
-        {etiquetasCampo.map((etiqueta) => (
+        {etiquetasCampoNormales.map((etiqueta) => (
           <button
             className={`match-tag-chip match-tag-chip--${etiqueta.categoria}`}
             disabled={!toque}
@@ -134,18 +188,80 @@ function MatchPitchCapture() {
       )}
 
       <div className="match-player-grid">
-        {sesion.jugadores.map((jugador) => (
-          <button
-            className="match-player-chip"
-            disabled={!etiquetaElegida}
-            key={jugador.id}
-            style={{ borderColor: jugador.color, color: jugador.color }}
-            type="button"
-            onClick={() => elegirJugador(jugador.id)}
-          >
-            {jugador.nombre}
-          </button>
-        ))}
+        <div className="match-player-group">
+          {jugadoresIzquierda.map((jugador) => (
+            <button
+              className="match-player-chip"
+              disabled={!etiquetaElegida}
+              key={jugador.id}
+              style={{ borderColor: jugador.color, color: jugador.color }}
+              type="button"
+              onClick={() => elegirJugador(jugador.id)}
+            >
+              {jugador.nombre}
+            </button>
+          ))}
+        </div>
+
+        <div className="match-sustitucion">
+          {etiquetaEntra && etiquetaSale && (
+            <>
+              <button
+                className="match-sustitucion-trigger"
+                disabled={!capturaActiva}
+                type="button"
+                onClick={() => setSustitucionAbierta((actual) => !actual)}
+              >
+                ⇅ Sustitución
+              </button>
+
+              {sustitucionAbierta && (
+                <div className="match-sustitucion-panel">
+                  {sesion.jugadores.map((jugador) => (
+                    <div className="match-sustitucion-fila" key={jugador.id}>
+                      <span style={{ color: jugador.color }}>{jugador.nombre}</span>
+                      <span className="d-flex gap-1">
+                        <button
+                          aria-label={`${jugador.nombre} entra al campo`}
+                          className="match-sustitucion-boton match-sustitucion-boton--entra"
+                          title="Entra al campo"
+                          type="button"
+                          onClick={() => registrarSustitucion(jugador.id, etiquetaEntra)}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          aria-label={`${jugador.nombre} sale del campo`}
+                          className="match-sustitucion-boton match-sustitucion-boton--sale"
+                          title="Sale del campo"
+                          type="button"
+                          onClick={() => registrarSustitucion(jugador.id, etiquetaSale)}
+                        >
+                          ↓
+                        </button>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="match-player-group match-player-group--derecha">
+          {jugadoresDerecha.map((jugador) => (
+            <button
+              className="match-player-chip"
+              disabled={!etiquetaElegida}
+              key={jugador.id}
+              style={{ borderColor: jugador.color, color: jugador.color }}
+              type="button"
+              onClick={() => elegirJugador(jugador.id)}
+            >
+              {jugador.nombre}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div
@@ -170,22 +286,34 @@ function MatchPitchCapture() {
             <circle cx="11" cy="34" r="0.45" />
             <circle cx="94" cy="34" r="0.45" />
           </g>
-          {sesion.acciones.map((accion) => {
-            const jugador = sesion.jugadores.find((item) => item.id === accion.jugadorId)
-            if (!jugador) return null
+          {sesion.acciones
+            .filter((accion) => accion.parte === sesion.parte && !accion.esSustitucion)
+            .map((accion) => {
+              const jugador = sesion.jugadores.find((item) => item.id === accion.jugadorId)
+              if (!jugador) return null
 
-            return (
-              <circle
-                cx={(accion.x / 100) * 105}
-                cy={(accion.y / 100) * 68}
-                fill={jugador.color}
-                key={accion.id}
-                r="1.2"
-                stroke="#0d1113"
-                strokeWidth="0.25"
-              />
-            )
-          })}
+              return (
+                <circle
+                  cx={(accion.x / 100) * 105}
+                  cy={(accion.y / 100) * 68}
+                  fill={jugador.color}
+                  key={accion.id}
+                  r="1.2"
+                  stroke="#0d1113"
+                  strokeWidth="0.25"
+                />
+              )
+            })}
+          {toque && (
+            <circle
+              cx={(toque.x / 100) * 105}
+              cy={(toque.y / 100) * 68}
+              fill="#c3cad1"
+              r="1.4"
+              stroke="#fff"
+              strokeWidth="0.3"
+            />
+          )}
         </svg>
       </div>
     </div>

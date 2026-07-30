@@ -1,20 +1,20 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { obtenerCriteriosScouting } from '../services/criteriaService'
+import { obtenerEquipos } from '../services/teamService'
+import CriteriaRatingsInput from './CriteriaRatingsInput'
 import type {
   CriterioScouting,
-  GrupoCriterio,
   PerfilScouting,
 } from '../types/criterio'
-import type { NuevaObservacion } from '../types/observacion'
+import type { NuevaObservacion, TipoObservacion } from '../types/observacion'
 import { useToast } from './ToastContext'
 
 interface PlayerObservationFormProps {
   onCrearObservacion: (observacion: NuevaObservacion) => Promise<void>
   onAlturaCambiar?: (altura: number) => void
   perfilScouting: PerfilScouting
+  equipoActualJugador: string | null
 }
-
-const grupos: GrupoCriterio[] = ['Físico', 'Técnico', 'Táctico', 'Mental']
 
 function obtenerFechaActual() {
   return new Date().toISOString().slice(0, 10)
@@ -24,9 +24,17 @@ function PlayerObservationForm({
   onCrearObservacion,
   onAlturaCambiar,
   perfilScouting,
+  equipoActualJugador,
 }: PlayerObservationFormProps) {
+  const idListaEquipos = useId()
   const tarjetaRef = useRef<HTMLElement>(null)
+  const [tipo, setTipo] = useState<TipoObservacion>('entrenamiento')
   const [fechaObservacion, setFechaObservacion] = useState(obtenerFechaActual)
+  const [nombresEquipos, setNombresEquipos] = useState<string[]>([])
+  const [equipoJugador, setEquipoJugador] = useState(equipoActualJugador ?? '')
+  const [equipoRival, setEquipoRival] = useState('')
+  const [competicion, setCompeticion] = useState('')
+  const [jornada, setJornada] = useState('')
   const [notas, setNotas] = useState('')
   const [criterios, setCriterios] = useState<CriterioScouting[]>([])
   const [puntuaciones, setPuntuaciones] = useState<Record<number, string>>({})
@@ -53,6 +61,12 @@ function PlayerObservationForm({
 
     void cargarCriterios()
   }, [perfilScouting])
+
+  useEffect(() => {
+    obtenerEquipos()
+      .then((equipos) => setNombresEquipos(equipos.map((equipo) => equipo.nombre)))
+      .catch(() => setNombresEquipos([]))
+  }, [])
 
   useEffect(() => {
     const tarjeta = tarjetaRef.current
@@ -103,8 +117,13 @@ function PlayerObservationForm({
 
     try {
       await onCrearObservacion({
+        tipo,
         fechaObservacion,
         notas: notasLimpias,
+        equipoJugador: tipo === 'partido' ? equipoJugador : '',
+        equipoRival: tipo === 'partido' ? equipoRival : '',
+        competicion: tipo === 'partido' ? competicion : '',
+        jornada: tipo === 'partido' ? jornada : '',
         valoraciones,
       })
       setFechaObservacion(obtenerFechaActual())
@@ -130,20 +149,111 @@ function PlayerObservationForm({
         </h2>
 
         <form onSubmit={enviarFormulario}>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="fecha-observacion">
-              Fecha de observación
-            </label>
-            <input
-              className="form-control"
-              disabled={guardando}
-              id="fecha-observacion"
-              required
-              type="date"
-              value={fechaObservacion}
-              onChange={(evento) => setFechaObservacion(evento.target.value)}
-            />
+          <div className="row g-3 mb-3">
+            <div className="col-12 col-sm-6">
+              <label className="form-label" htmlFor="tipo-observacion">
+                Tipo
+              </label>
+              <select
+                className="form-select"
+                disabled={guardando}
+                id="tipo-observacion"
+                value={tipo}
+                onChange={(evento) => setTipo(evento.target.value as TipoObservacion)}
+              >
+                <option value="entrenamiento">Entrenamiento</option>
+                <option value="partido">Partido</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+
+            <div className="col-12 col-sm-6">
+              <label className="form-label" htmlFor="fecha-observacion">
+                Fecha de observación
+              </label>
+              <input
+                className="form-control"
+                disabled={guardando}
+                id="fecha-observacion"
+                required
+                type="date"
+                value={fechaObservacion}
+                onChange={(evento) => setFechaObservacion(evento.target.value)}
+              />
+            </div>
           </div>
+
+          {tipo === 'partido' && (
+            <div className="row g-3 mb-3">
+              <div className="col-12 col-sm-6">
+                <label className="form-label" htmlFor="equipo-jugador-observacion">
+                  Equipo del jugador
+                </label>
+                <input
+                  className="form-control"
+                  disabled={guardando}
+                  id="equipo-jugador-observacion"
+                  list={idListaEquipos}
+                  placeholder="Equipo del jugador en ese partido"
+                  type="text"
+                  value={equipoJugador}
+                  onChange={(evento) => setEquipoJugador(evento.target.value)}
+                />
+              </div>
+
+              <div className="col-12 col-sm-6">
+                <label className="form-label" htmlFor="equipo-rival-observacion">
+                  Rival
+                </label>
+                <input
+                  className="form-control"
+                  disabled={guardando}
+                  id="equipo-rival-observacion"
+                  list={idListaEquipos}
+                  placeholder="Nombre del equipo rival"
+                  type="text"
+                  value={equipoRival}
+                  onChange={(evento) => setEquipoRival(evento.target.value)}
+                />
+              </div>
+
+              <datalist id={idListaEquipos}>
+                {nombresEquipos.map((nombre) => (
+                  <option key={nombre} value={nombre} />
+                ))}
+              </datalist>
+
+              <div className="col-12 col-sm-6">
+                <label className="form-label" htmlFor="competicion-observacion">
+                  Competición <span className="text-body-secondary">(opcional)</span>
+                </label>
+                <input
+                  className="form-control"
+                  disabled={guardando}
+                  id="competicion-observacion"
+                  placeholder="Ej. Liga, Copa, amistoso..."
+                  type="text"
+                  value={competicion}
+                  onChange={(evento) => setCompeticion(evento.target.value)}
+                />
+              </div>
+
+              <div className="col-12 col-sm-6">
+                <label className="form-label" htmlFor="jornada-observacion">
+                  Jornada <span className="text-body-secondary">(opcional)</span>
+                </label>
+                <input
+                  className="form-control"
+                  disabled={guardando}
+                  id="jornada-observacion"
+                  placeholder="Ej. Jornada 12"
+                  type="text"
+                  value={jornada}
+                  onChange={(evento) => setJornada(evento.target.value)}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="mb-4">
             <label className="form-label" htmlFor="notas-observacion">
@@ -161,73 +271,14 @@ function PlayerObservationForm({
             />
           </div>
 
-          <details className="observation-ratings mb-4">
-            <summary className="fw-semibold">
-              Valoraciones opcionales (de 0 a 20)
-            </summary>
-            <p className="small text-body-secondary mt-2 mb-3">
-              Rellena únicamente los atributos que hayas podido valorar con criterio
-              en este informe.
-            </p>
-
-            {cargandoCriterios && (
-              <p className="small text-body-secondary">Cargando criterios…</p>
-            )}
-
-            {errorCriterios && (
-              <p className="alert alert-warning py-2 small" role="alert">
-                {errorCriterios}
-              </p>
-            )}
-
-            {!cargandoCriterios && !errorCriterios && (
-              <div className="d-grid gap-2">
-                {grupos.map((grupo) => {
-                  const criteriosDelGrupo = criterios.filter(
-                    (criterio) => criterio.grupo === grupo,
-                  )
-
-                  return (
-                    <details className="criteria-group" key={grupo}>
-                      <summary className="fw-semibold">
-                          {grupo} ({criteriosDelGrupo.length})
-                      </summary>
-                      <div className="pt-3">
-                        <div className="row g-3">
-                          {criteriosDelGrupo.map((criterio) => {
-                            const idInput = `criterio-${criterio.id}`
-
-                            return (
-                              <div className="col-12 col-sm-6" key={criterio.id}>
-                                <label className="form-label small" htmlFor={idInput}>
-                                  {criterio.nombre}
-                                </label>
-                                <input
-                                  className="form-control"
-                                  disabled={guardando}
-                                  id={idInput}
-                                  inputMode="numeric"
-                                  max={20}
-                                  min={0}
-                                  placeholder="Sin valorar"
-                                  step={1}
-                                  type="number"
-                                  value={puntuaciones[criterio.id] ?? ''}
-                                  onChange={(evento) =>
-                                    actualizarPuntuacion(criterio.id, evento.target.value)
-                                  }
-                                />
-                              </div>
-                            )
-                          })}
-                          </div>
-                      </div>
-                    </details>
-                  )
-                })}
-              </div>
-            )}
-          </details>
+          <CriteriaRatingsInput
+            cargando={cargandoCriterios}
+            criterios={criterios}
+            disabled={guardando}
+            error={errorCriterios}
+            puntuaciones={puntuaciones}
+            onCambiarPuntuacion={actualizarPuntuacion}
+          />
 
           {error && (
             <p className="alert alert-danger py-2" role="alert">

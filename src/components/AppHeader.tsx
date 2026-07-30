@@ -74,6 +74,12 @@ function AppHeader({
           >
             Comparar
           </NavLink>
+          <NavLink
+            className={({ isActive }) => `app-nav-link ${isActive ? 'active' : ''}`}
+            to="/ojeo-partido"
+          >
+            Ojear partido
+          </NavLink>
           {herramientas}
         </nav>
       )}

@@ -5,12 +5,15 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { ToastProvider } from './components/ToastProvider.tsx'
+import { MatchSessionProvider } from './components/MatchSessionProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ToastProvider>
-        <App />
+        <MatchSessionProvider>
+          <App />
+        </MatchSessionProvider>
       </ToastProvider>
     </BrowserRouter>
   </StrictMode>,

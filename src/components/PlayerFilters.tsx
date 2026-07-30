@@ -6,12 +6,14 @@ import {
   type FiltrosJugadores,
 } from '../types/filtrosJugador'
 import type { Posicion } from '../types/posicion'
+import FilterIcon from './FilterIcon'
 
 interface PlayerFiltersProps {
   filtros: FiltrosJugadores
   onCambiarFiltros: (filtros: FiltrosJugadores) => void
   integradoEnMenu?: boolean
   modo?: 'completo' | 'accion' | 'panel'
+  varianteBoton?: 'texto' | 'icono'
   abierto?: boolean
   onCambiarAbierto?: (abierto: boolean) => void
   className?: string
@@ -22,6 +24,7 @@ function PlayerFilters({
   onCambiarFiltros,
   integradoEnMenu = false,
   modo = 'completo',
+  varianteBoton = 'texto',
   abierto: abiertoControlado,
   onCambiarAbierto,
   className = '',
@@ -114,17 +117,33 @@ function PlayerFilters({
     >
       {modo !== 'panel' && (
         <div className="player-filters-actions d-flex align-items-center gap-2">
-        <button
-          aria-expanded={abierto}
-          className={integradoEnMenu ? 'app-nav-link app-nav-filter' : 'btn btn-outline-secondary'}
-          type="button"
-          onClick={() => cambiarAbierto(!abierto)}
-        >
-          Filtrar jugadores
-          {totalFiltrosActivos > 0 && (
-            <span className="filter-count ms-2">{totalFiltrosActivos}</span>
-          )}
-        </button>
+        {varianteBoton === 'icono' ? (
+          <button
+            aria-expanded={abierto}
+            aria-label="Filtrar jugadores"
+            className="player-filters-icon-trigger"
+            title="Filtrar jugadores"
+            type="button"
+            onClick={() => cambiarAbierto(!abierto)}
+          >
+            <FilterIcon size={16} />
+            {totalFiltrosActivos > 0 && (
+              <span className="filter-count ms-1">{totalFiltrosActivos}</span>
+            )}
+          </button>
+        ) : (
+          <button
+            aria-expanded={abierto}
+            className={integradoEnMenu ? 'app-nav-link app-nav-filter' : 'btn btn-outline-secondary'}
+            type="button"
+            onClick={() => cambiarAbierto(!abierto)}
+          >
+            Filtrar jugadores
+            {totalFiltrosActivos > 0 && (
+              <span className="filter-count ms-2">{totalFiltrosActivos}</span>
+            )}
+          </button>
+        )}
 
         {totalFiltrosActivos > 0 && (
           <button

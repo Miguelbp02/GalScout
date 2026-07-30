@@ -1,15 +1,28 @@
 import { useEffect, useState } from 'react'
 import { obtenerPosiciones } from '../services/positionService'
+import type { FiltrosJugadores } from '../types/filtrosJugador'
 import type { Jugador } from '../types/jugador'
 import type { Posicion } from '../types/posicion'
 import PlayerCard from './PlayerCard'
+import PlayerFilters from './PlayerFilters'
 
 interface PlayerListProps {
   jugadores: Jugador[]
   hayFiltrosActivos?: boolean
+  filtros: FiltrosJugadores
+  onCambiarFiltros: (filtros: FiltrosJugadores) => void
+  filtrosAbiertos: boolean
+  onCambiarFiltrosAbiertos: (abierto: boolean) => void
 }
 
-function PlayerList({ jugadores, hayFiltrosActivos = false }: PlayerListProps) {
+function PlayerList({
+  jugadores,
+  hayFiltrosActivos = false,
+  filtros,
+  onCambiarFiltros,
+  filtrosAbiertos,
+  onCambiarFiltrosAbiertos,
+}: PlayerListProps) {
   const [posiciones, setPosiciones] = useState<Posicion[]>([])
 
   useEffect(() => {
@@ -24,9 +37,19 @@ function PlayerList({ jugadores, hayFiltrosActivos = false }: PlayerListProps) {
         <h2 id="player-list-title" className="h4 mb-0">
           Jugadores registrados
         </h2>
-        <span className="text-body-secondary">
-          {jugadores.length} jugadores
-        </span>
+        <div className="d-flex align-items-center gap-2">
+          <span className="text-body-secondary">
+            {jugadores.length} jugadores
+          </span>
+          <PlayerFilters
+            abierto={filtrosAbiertos}
+            filtros={filtros}
+            modo="accion"
+            varianteBoton="icono"
+            onCambiarAbierto={onCambiarFiltrosAbiertos}
+            onCambiarFiltros={onCambiarFiltros}
+          />
+        </div>
       </div>
 
       <div className="row g-4">

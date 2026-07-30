@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react'
+import FormattedNotes from './FormattedNotes'
 import HistoryListSkeleton from './HistoryListSkeleton'
 import TrashIcon from './TrashIcon'
+import { obtenerAccionesObservacion } from '../services/observationService'
+import type { AccionObservacion } from '../types/accionObservacion'
 import type { ObservacionJugador } from '../types/observacion'
 
 interface PlayerObservationListProps {
@@ -18,6 +21,12 @@ function formatearFecha(fecha: string, incluirHora = false) {
   }).format(new Date(fecha))
 }
 
+const etiquetaTipo: Record<string, string> = {
+  partido: 'Partido',
+  entrenamiento: 'Entrenamiento',
+  otro: 'Otro',
+}
+
 function PlayerObservationList({
   alturaMaxima,
   cargando,
@@ -30,6 +39,10 @@ function PlayerObservationList({
   const [idsSeleccionados, setIdsSeleccionados] = useState<string[]>([])
   const [eliminando, setEliminando] = useState(false)
   const [errorEliminacion, setErrorEliminacion] = useState<string | null>(null)
+  const [accionesPorObservacion, setAccionesPorObservacion] = useState<
+    Record<string, AccionObservacion[]>
+  >({})
+  const [cargandoAcciones, setCargandoAcciones] = useState<Record<string, boolean>>({})
 
   function desplazarInformeAbierto(elemento: HTMLDetailsElement) {
     if (!elemento.open || !historialRef.current) return
@@ -43,6 +56,30 @@ function PlayerObservationList({
         behavior: 'smooth',
       })
     })
+  }
+
+  async function manejarAperturaObservacion(observacion: ObservacionJugador) {
+    if (observacion.tipo !== 'partido') return
+    if (accionesPorObservacion[observacion.id] || cargandoAcciones[observacion.id]) return
+
+    setCargandoAcciones((actual) => ({ ...actual, [observacion.id]: true }))
+
+    try {
+      const acciones = await obtenerAccionesObservacion(observacion.id)
+      setAccionesPorObservacion((actual) => ({ ...actual, [observacion.id]: acciones }))
+    } catch {
+      setAccionesPorObservacion((actual) => ({ ...actual, [observacion.id]: [] }))
+    } finally {
+      setCargandoAcciones((actual) => ({ ...actual, [observacion.id]: false }))
+    }
+  }
+
+  function manejarToggle(observacion: ObservacionJugador, elemento: HTMLDetailsElement) {
+    desplazarInformeAbierto(elemento)
+
+    if (elemento.open) {
+      void manejarAperturaObservacion(observacion)
+    }
   }
 
   function alternarSeleccion(id: string) {
@@ -153,61 +190,113 @@ function PlayerObservationList({
 
         {!cargando && !error && observaciones.length > 0 && (
           <div className="observation-history-scroll d-grid gap-3" ref={historialRef}>
-            {observaciones.map((observacion) => (
-              <details
-                className="observation-item"
-                key={observacion.id}
-                onToggle={(evento) => desplazarInformeAbierto(evento.currentTarget)}
-              >
-                <summary className="observation-summary">
-                  {modoEliminar && (
-                    <input
-                      aria-label={`Seleccionar informe del ${formatearFecha(
-                        observacion.fechaObservacion,
-                      )}`}
-                      checked={idsSeleccionados.includes(observacion.id)}
-                      className="history-delete-checkbox"
-                      type="checkbox"
-                      onChange={() => alternarSeleccion(observacion.id)}
-                      onClick={(evento) => evento.stopPropagation()}
-                    />
-                  )}
-                  <span>
-                    <strong>{formatearFecha(observacion.fechaObservacion)}</strong>
-                    <span className="small text-body-secondary ms-3">
-                      {observacion.autorNombre}
-                    </span>
-                  </span>
-                  <span aria-hidden="true" className="observation-toggle">
-                    ▸
-                  </span>
-                </summary>
+            {observaciones.map((observacion) => {
+              const acciones = accionesPorObservacion[observacion.id] ?? []
 
-                <div className="observation-content">
-                  <p className="mb-2 observation-notes">{observacion.notas}</p>
-                  {observacion.valoraciones.length > 0 && (
-                    <div className="mb-3">
-                      <p className="mb-2 small fw-semibold">
-                        Valoraciones del informe ({observacion.valoraciones.length})
-                      </p>
-                      <div className="d-flex flex-wrap gap-2">
-                        {observacion.valoraciones.map((valoracion) => (
-                          <span
-                            className="badge observation-score"
-                            key={valoracion.criterioNombre}
-                          >
-                            {valoracion.criterioNombre}: {valoracion.puntuacion}
-                          </span>
-                        ))}
-                      </div>
+              return (
+                <details
+                  className="observation-item"
+                  key={observacion.id}
+                  onToggle={(evento) =>
+                    manejarToggle(observacion, evento.currentTarget)
+                  }
+                >
+                  <summary className="observation-summary">
+                    {modoEliminar && (
+                      <input
+                        aria-label={`Seleccionar informe del ${formatearFecha(
+                          observacion.fechaObservacion,
+                        )}`}
+                        checked={idsSeleccionados.includes(observacion.id)}
+                        className="history-delete-checkbox"
+                        type="checkbox"
+                        onChange={() => alternarSeleccion(observacion.id)}
+                        onClick={(evento) => evento.stopPropagation()}
+                      />
+                    )}
+                    <span>
+                      <strong>{formatearFecha(observacion.fechaObservacion)}</strong>
+                      {observacion.tipo && (
+                        <span className="badge text-bg-secondary ms-3">
+                          {etiquetaTipo[observacion.tipo] ?? observacion.tipo}
+                        </span>
+                      )}
+                      <span className="small text-body-secondary ms-3">
+                        {observacion.autorNombre}
+                      </span>
+                    </span>
+                    <span aria-hidden="true" className="observation-toggle">
+                      ▸
+                    </span>
+                  </summary>
+
+                  <div className="observation-content">
+                    {observacion.tipo === 'partido' &&
+                      (observacion.equipoJugador ||
+                        observacion.equipoRival ||
+                        observacion.competicion ||
+                        observacion.jornada) && (
+                        <p className="mb-2 small text-body-secondary">
+                          {observacion.equipoJugador ?? '?'} vs{' '}
+                          {observacion.equipoRival ?? '?'}
+                          {observacion.competicion && ` · ${observacion.competicion}`}
+                          {observacion.jornada && ` · ${observacion.jornada}`}
+                        </p>
+                      )}
+
+                    <div className="mb-2">
+                      <FormattedNotes texto={observacion.notas} />
                     </div>
-                  )}
-                  <p className="mb-0 small text-body-secondary">
-                    Registrado el {formatearFecha(observacion.createdAt, true)}
-                  </p>
-                </div>
-              </details>
-            ))}
+
+                    {observacion.valoraciones.length > 0 && (
+                      <div className="mb-3">
+                        <p className="mb-2 small fw-semibold">
+                          Valoraciones del informe ({observacion.valoraciones.length})
+                        </p>
+                        <div className="d-flex flex-wrap gap-2">
+                          {observacion.valoraciones.map((valoracion) => (
+                            <span
+                              className="badge observation-score"
+                              key={valoracion.criterioNombre}
+                            >
+                              {valoracion.criterioNombre}: {valoracion.puntuacion}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {observacion.tipo === 'partido' && (
+                      <div className="mb-2">
+                        {cargandoAcciones[observacion.id] && (
+                          <p className="small text-body-secondary mb-0">
+                            Cargando acciones registradas…
+                          </p>
+                        )}
+                        {!cargandoAcciones[observacion.id] && acciones.length > 0 && (
+                          <>
+                            <p className="mb-2 small fw-semibold">
+                              Acciones registradas ({acciones.length})
+                            </p>
+                            <div className="d-flex flex-wrap gap-2">
+                              {acciones.map((accion) => (
+                                <span className="badge observation-score" key={accion.id}>
+                                  {accion.minuto}&apos; {accion.etiquetaNombre}
+                                </span>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    <p className="mb-0 small text-body-secondary">
+                      Registrado el {formatearFecha(observacion.createdAt, true)}
+                    </p>
+                  </div>
+                </details>
+              )
+            })}
           </div>
         )}
       </div>

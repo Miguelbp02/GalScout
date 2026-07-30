@@ -13,6 +13,8 @@ import { supabase } from './lib/supabase'
 import PlayerDetailPage from './pages/PlayerDetailPage'
 import EditPlayerPage from './pages/EditPlayerPage'
 import ComparePlayersPage from './pages/ComparePlayersPage'
+import MatchScoutingPage from './pages/MatchScoutingPage'
+import FloatingMatchPill from './components/FloatingMatchPill'
 import { crearJugador, obtenerJugadores } from './services/playerService'
 import type { Jugador, NuevoJugador } from './types/jugador'
 import {
@@ -139,16 +141,6 @@ function App() {
       <AppHeader
         email={sesion.user.email}
         onCerrarSesion={() => void cerrarSesion()}
-        herramientas={
-          <PlayerFilters
-            abierto={filtrosAbiertos}
-            filtros={filtrosJugadores}
-            integradoEnMenu
-            modo="accion"
-            onCambiarAbierto={setFiltrosAbiertos}
-            onCambiarFiltros={setFiltrosJugadores}
-          />
-        }
       />
 
       {jugadoresCargando && <PlayerListSkeleton />}
@@ -170,8 +162,12 @@ function App() {
             onCambiarFiltros={setFiltrosJugadores}
           />
           <PlayerList
+            filtros={filtrosJugadores}
+            filtrosAbiertos={filtrosAbiertos}
             hayFiltrosActivos={hayFiltrosActivos}
             jugadores={jugadoresFiltrados}
+            onCambiarFiltros={setFiltrosJugadores}
+            onCambiarFiltrosAbiertos={setFiltrosAbiertos}
           />
         </>
       )}
@@ -184,21 +180,6 @@ function App() {
       <AppHeader
         email={sesion.user.email}
         onCerrarSesion={() => void cerrarSesion()}
-        herramientas={
-          <PlayerFilters
-            abierto={false}
-            filtros={filtrosJugadores}
-            integradoEnMenu
-            modo="accion"
-            onCambiarAbierto={(abierto) => {
-              if (abierto) {
-                setFiltrosAbiertos(true)
-                navigate('/')
-              }
-            }}
-            onCambiarFiltros={setFiltrosJugadores}
-          />
-        }
       />
       <PlayerForm onGuardarJugador={añadirJugador} />
       <AppFooter />
@@ -206,14 +187,18 @@ function App() {
   )
 
   return (
-    <Routes>
-      <Route path="/" element={pantallaPrincipal} />
-      <Route path="/jugadores/nuevo" element={pantallaNuevoJugador} />
-      <Route path="/comparar" element={<ComparePlayersPage />} />
-      <Route path="/jugadores/:jugadorId/editar" element={<EditPlayerPage />} />
-      <Route path="/jugadores/:jugadorId" element={<PlayerDetailPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={pantallaPrincipal} />
+        <Route path="/jugadores/nuevo" element={pantallaNuevoJugador} />
+        <Route path="/comparar" element={<ComparePlayersPage />} />
+        <Route path="/ojeo-partido" element={<MatchScoutingPage />} />
+        <Route path="/jugadores/:jugadorId/editar" element={<EditPlayerPage />} />
+        <Route path="/jugadores/:jugadorId" element={<PlayerDetailPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <FloatingMatchPill />
+    </>
   )
 }
 

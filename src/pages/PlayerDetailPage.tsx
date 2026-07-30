@@ -439,6 +439,7 @@ function PlayerDetailPage() {
           <div className="row g-4 mt-1">
             <div className="col-12 col-xl-5">
               <PlayerObservationForm
+                equipoActualJugador={jugador.equipoActual}
                 onCrearObservacion={añadirObservacion}
                 onAlturaCambiar={setAlturaFormularioObservacion}
                 perfilScouting={perfilScouting}

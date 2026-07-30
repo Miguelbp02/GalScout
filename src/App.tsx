@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import './App.css'
+import AppFooter from './components/AppFooter'
 import AppHeader from './components/AppHeader'
 import LoginForm from './components/LoginForm'
 import PlayerFilters from './components/PlayerFilters'
@@ -28,6 +29,7 @@ function App() {
   const [filtrosJugadores, setFiltrosJugadores] = useState<FiltrosJugadores>(
     filtrosJugadoresIniciales,
   )
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
 
   useEffect(() => {
     async function cargarSesion() {
@@ -135,6 +137,16 @@ function App() {
       <AppHeader
         email={sesion.user.email}
         onCerrarSesion={() => void cerrarSesion()}
+        herramientas={
+          <PlayerFilters
+            abierto={filtrosAbiertos}
+            filtros={filtrosJugadores}
+            integradoEnMenu
+            modo="accion"
+            onCambiarAbierto={setFiltrosAbiertos}
+            onCambiarFiltros={setFiltrosJugadores}
+          />
+        }
       />
 
       {jugadoresCargando && (
@@ -150,7 +162,11 @@ function App() {
       {!jugadoresCargando && !errorJugadores && (
         <>
           <PlayerFilters
+            abierto={filtrosAbiertos}
+            className="player-filters--from-menu"
             filtros={filtrosJugadores}
+            modo="panel"
+            onCambiarAbierto={setFiltrosAbiertos}
             onCambiarFiltros={setFiltrosJugadores}
           />
           <PlayerList
@@ -159,6 +175,7 @@ function App() {
           />
         </>
       )}
+      <AppFooter />
     </main>
   )
 
@@ -167,8 +184,24 @@ function App() {
       <AppHeader
         email={sesion.user.email}
         onCerrarSesion={() => void cerrarSesion()}
+        herramientas={
+          <PlayerFilters
+            abierto={false}
+            filtros={filtrosJugadores}
+            integradoEnMenu
+            modo="accion"
+            onCambiarAbierto={(abierto) => {
+              if (abierto) {
+                setFiltrosAbiertos(true)
+                navigate('/')
+              }
+            }}
+            onCambiarFiltros={setFiltrosJugadores}
+          />
+        }
       />
       <PlayerForm onGuardarJugador={añadirJugador} />
+      <AppFooter />
     </main>
   )
 

@@ -1,4 +1,9 @@
 import { supabase } from '../lib/supabase'
+import {
+  guardarEquipoActualJugador,
+  obtenerEquipoActualJugador,
+} from './teamService'
+import { limitesFiltrosJugadores } from '../types/filtrosJugador'
 import type { Jugador, NuevoJugador } from '../types/jugador'
 
 interface JugadorFila {
@@ -22,11 +27,17 @@ interface ObservacionJugadorFila {
   jugador_id: string
 }
 
+interface EquipoActualJugadorFila {
+  jugador_id: string
+  equipos: { nombre: string } | { nombre: string }[] | null
+}
+
 function mapearJugador(
   jugador: JugadorFila,
   posicionesNaturalesIds: number[] = [],
   posicionesAptasIds: number[] = [],
   totalInformes = 0,
+  equipoActual: string | null = null,
 ): Jugador {
   return {
     id: jugador.id,
@@ -37,6 +48,7 @@ function mapearJugador(
     piernaDominante: jugador.pierna_dominante,
     estado: jugador.estado,
     categoria: jugador.categoria,
+    equipoActual,
     posicionesNaturalesIds,
     posicionesAptasIds,
     totalInformes,
@@ -46,8 +58,28 @@ function mapearJugador(
 const columnasJugador =
   'id, nombre, edad, altura_cm, posicion, pierna_dominante, estado, categoria'
 
+function validarMedidasJugador(jugador: NuevoJugador) {
+  const edadValida =
+    Number.isInteger(jugador.edad) &&
+    jugador.edad >= limitesFiltrosJugadores.edadMinima &&
+    jugador.edad <= limitesFiltrosJugadores.edadMaxima
+  const alturaValida =
+    Number.isInteger(jugador.alturaCm) &&
+    jugador.alturaCm >= limitesFiltrosJugadores.alturaMinima &&
+    jugador.alturaCm <= limitesFiltrosJugadores.alturaMaxima
+
+  if (!edadValida || !alturaValida) {
+    throw new Error('Edad o altura fuera del rango permitido.')
+  }
+}
+
 export async function obtenerJugadores(): Promise<Jugador[]> {
-  const [respuestaJugadores, respuestaPosiciones, respuestaObservaciones] =
+  const [
+    respuestaJugadores,
+    respuestaPosiciones,
+    respuestaObservaciones,
+    respuestaEquiposActuales,
+  ] =
     await Promise.all([
       supabase
         .from('jugadores')
@@ -57,6 +89,10 @@ export async function obtenerJugadores(): Promise<Jugador[]> {
         .from('jugadores_posiciones')
         .select('jugador_id, posicion_id, tipo'),
       supabase.from('observaciones_jugador').select('jugador_id'),
+      supabase
+        .from('jugadores_equipos')
+        .select('jugador_id, equipos(nombre)')
+        .eq('es_actual', true),
     ])
 
   if (respuestaJugadores.error) {
@@ -69,6 +105,10 @@ export async function obtenerJugadores(): Promise<Jugador[]> {
 
   if (respuestaObservaciones.error) {
     throw new Error(respuestaObservaciones.error.message)
+  }
+
+  if (respuestaEquiposActuales.error) {
+    throw new Error(respuestaEquiposActuales.error.message)
   }
 
   const posicionesPorJugador = new Map<
@@ -100,6 +140,21 @@ export async function obtenerJugadores(): Promise<Jugador[]> {
     )
   }
 
+  const equiposActualesPorJugador = new Map<string, string>()
+
+  for (const equipoActual of respuestaEquiposActuales.data as EquipoActualJugadorFila[]) {
+    const equipo = Array.isArray(equipoActual.equipos)
+      ? equipoActual.equipos[0]
+      : equipoActual.equipos
+
+    if (equipo?.nombre) {
+      equiposActualesPorJugador.set(
+        equipoActual.jugador_id,
+        equipo.nombre.toLocaleUpperCase('es-ES'),
+      )
+    }
+  }
+
   return (respuestaJugadores.data as JugadorFila[]).map((jugador) => {
     const perfil = posicionesPorJugador.get(jugador.id)
 
@@ -108,6 +163,7 @@ export async function obtenerJugadores(): Promise<Jugador[]> {
       perfil?.naturales,
       perfil?.aptas,
       informesPorJugador.get(jugador.id) ?? 0,
+      equiposActualesPorJugador.get(jugador.id) ?? null,
     )
   })
 }
@@ -123,10 +179,20 @@ export async function obtenerJugadorPorId(id: string): Promise<Jugador | null> {
     throw new Error(error.message)
   }
 
-  return data ? mapearJugador(data as JugadorFila) : null
+  if (!data) return null
+
+  return mapearJugador(
+    data as JugadorFila,
+    [],
+    [],
+    0,
+    await obtenerEquipoActualJugador(id),
+  )
 }
 
 export async function crearJugador(jugador: NuevoJugador): Promise<Jugador> {
+  validarMedidasJugador(jugador)
+
   if (jugador.posicionesNaturalesIds.length === 0) {
     throw new Error('Selecciona al menos una posición natural.')
   }
@@ -199,13 +265,25 @@ export async function crearJugador(jugador: NuevoJugador): Promise<Jugador> {
     throw new Error(errorPosiciones.message)
   }
 
-  return mapearJugador(data as JugadorFila)
+  await guardarEquipoActualJugador(data.id, jugador.equipoActual, jugador.estado)
+
+  return mapearJugador(
+    data as JugadorFila,
+    [],
+    [],
+    0,
+    jugador.estado === 'En equipo'
+      ? jugador.equipoActual.trim().toLocaleUpperCase('es-ES') || null
+      : null,
+  )
 }
 
 export async function actualizarJugador(
   jugadorId: string,
   jugador: NuevoJugador,
 ): Promise<Jugador> {
+  validarMedidasJugador(jugador)
+
   if (jugador.posicionesNaturalesIds.length === 0) {
     throw new Error('Selecciona al menos una posición natural.')
   }
@@ -286,7 +364,17 @@ export async function actualizarJugador(
     throw new Error(errorPosiciones.message)
   }
 
-  return mapearJugador(data as JugadorFila)
+  await guardarEquipoActualJugador(jugadorId, jugador.equipoActual, jugador.estado)
+
+  return mapearJugador(
+    data as JugadorFila,
+    [],
+    [],
+    0,
+    jugador.estado === 'En equipo'
+      ? jugador.equipoActual.trim().toLocaleUpperCase('es-ES') || null
+      : null,
+  )
 }
 
 export async function eliminarJugador(jugadorId: string): Promise<void> {

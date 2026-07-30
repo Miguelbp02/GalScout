@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import AppFooter from '../components/AppFooter'
 import AppHeader from '../components/AppHeader'
 import PlayerForm from '../components/PlayerForm'
 import { obtenerPerfilPosicionalJugador } from '../services/positionService'
@@ -46,6 +47,7 @@ function EditPlayerPage() {
           piernaDominante: jugadorObtenido.piernaDominante,
           estado: jugadorObtenido.estado,
           categoria: jugadorObtenido.categoria ?? '',
+          equipoActual: jugadorObtenido.equipoActual ?? '',
           posicionesNaturalesIds: perfilPosicional.posicionesNaturalesIds,
           posicionesAptasIds: perfilPosicional.posicionesAptasIds,
         })
@@ -142,6 +144,7 @@ function EditPlayerPage() {
           </section>
         </>
       )}
+      <AppFooter />
     </main>
   )
 }

@@ -1,4 +1,4 @@
-export type GrupoPosicion = 'Defensa' | 'Centrocampo' | 'Ataque'
+export type GrupoPosicion = 'Defensa' | 'Centrocampo' | 'Ataque' | 'Portería'
 
 export interface Posicion {
   id: number

@@ -10,12 +10,36 @@ import type { Posicion } from '../types/posicion'
 interface PlayerFiltersProps {
   filtros: FiltrosJugadores
   onCambiarFiltros: (filtros: FiltrosJugadores) => void
+  integradoEnMenu?: boolean
+  modo?: 'completo' | 'accion' | 'panel'
+  abierto?: boolean
+  onCambiarAbierto?: (abierto: boolean) => void
+  className?: string
 }
 
-function PlayerFilters({ filtros, onCambiarFiltros }: PlayerFiltersProps) {
-  const [abierto, setAbierto] = useState(false)
+function PlayerFilters({
+  filtros,
+  onCambiarFiltros,
+  integradoEnMenu = false,
+  modo = 'completo',
+  abierto: abiertoControlado,
+  onCambiarAbierto,
+  className = '',
+}: PlayerFiltersProps) {
+  const [abiertoInterno, setAbiertoInterno] = useState(false)
   const [posiciones, setPosiciones] = useState<Posicion[]>([])
   const [errorPosiciones, setErrorPosiciones] = useState(false)
+
+  const abierto = abiertoControlado ?? abiertoInterno
+
+  function cambiarAbierto(siguienteEstado: boolean) {
+    if (onCambiarAbierto) {
+      onCambiarAbierto(siguienteEstado)
+      return
+    }
+
+    setAbiertoInterno(siguienteEstado)
+  }
 
   useEffect(() => {
     async function cargarPosiciones() {
@@ -82,13 +106,19 @@ function PlayerFilters({ filtros, onCambiarFiltros }: PlayerFiltersProps) {
   }
 
   return (
-    <section className="player-filters mt-4" aria-label="Filtros de jugadores">
-      <div className="d-flex align-items-center gap-2">
+    <section
+      className={`player-filters ${
+        integradoEnMenu ? 'player-filters--integrated' : modo === 'completo' ? 'mt-4' : ''
+      } ${className}`}
+      aria-label="Filtros de jugadores"
+    >
+      {modo !== 'panel' && (
+        <div className="player-filters-actions d-flex align-items-center gap-2">
         <button
           aria-expanded={abierto}
-          className="btn btn-outline-secondary"
+          className={integradoEnMenu ? 'app-nav-link app-nav-filter' : 'btn btn-outline-secondary'}
           type="button"
-          onClick={() => setAbierto((estaAbierto) => !estaAbierto)}
+          onClick={() => cambiarAbierto(!abierto)}
         >
           Filtrar jugadores
           {totalFiltrosActivos > 0 && (
@@ -105,10 +135,11 @@ function PlayerFilters({ filtros, onCambiarFiltros }: PlayerFiltersProps) {
             Limpiar filtros
           </button>
         )}
-      </div>
+        </div>
+      )}
 
-      {abierto && (
-        <div className="filters-panel mt-3">
+      {modo !== 'accion' && abierto && (
+        <div className={`filters-panel ${integradoEnMenu ? 'filters-panel--integrated' : 'mt-3'}`}>
           <div className="row g-3">
             <div className="col-12">
               <label className="form-label" htmlFor="filtro-nombre">

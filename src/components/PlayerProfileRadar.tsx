@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { obtenerValoracionesMediasJugador } from '../services/playerRatingsService'
-import type { ResumenValoracionCriterio } from '../types/criterio'
+import type {
+  PerfilScouting,
+  ResumenValoracionCriterio,
+} from '../types/criterio'
 
 interface PlayerProfileRadarProps {
   jugadorId: string
   versionActualizacion: number
+  perfilScouting: PerfilScouting
 }
 
 interface AreaRadar {
@@ -89,6 +93,58 @@ const AREAS: AreaRadar[] = [
   },
 ]
 
+const AREAS_PORTERO: AreaRadar[] = [
+  {
+    etiqueta: 'Físico',
+    criterios: [
+      'Explosividad',
+      'Agilidad',
+      'Potencia de salto',
+      'Alcance aéreo',
+      'Velocidad de desplazamiento',
+    ],
+  },
+  {
+    etiqueta: 'Técnica',
+    criterios: ['Blocaje', 'Desvíos y rechaces', 'Estiradas'],
+  },
+  {
+    etiqueta: 'Juego',
+    criterios: [
+      'Juego de pies',
+      'Pase corto',
+      'Desplazamiento largo',
+      'Saque de mano',
+      'Golpeo con pierna no dominante',
+    ],
+  },
+  {
+    etiqueta: 'Salidas',
+    criterios: ['1 contra 1', 'Salidas aéreas', 'Salidas al espacio'],
+  },
+  {
+    etiqueta: 'Área',
+    criterios: [
+      'Colocación',
+      'Dominio del área',
+      'Lectura de centros',
+      'Organización defensiva',
+      'Gestión de la línea defensiva',
+    ],
+  },
+  {
+    etiqueta: 'Mental',
+    criterios: [
+      'Concentración',
+      'Toma de decisiones',
+      'Serenidad bajo presión',
+      'Valentía',
+      'Comunicación y liderazgo',
+      'Capacidad de reacción tras error',
+    ],
+  },
+]
+
 const CENTRO = 100
 const RADIO = 66
 
@@ -115,6 +171,7 @@ function coordenadas(angulo: number, radio: number) {
 function PlayerProfileRadar({
   jugadorId,
   versionActualizacion,
+  perfilScouting,
 }: PlayerProfileRadarProps) {
   const [valoraciones, setValoraciones] = useState<ResumenValoracionCriterio[]>([])
   const [cargando, setCargando] = useState(true)
@@ -124,7 +181,9 @@ function PlayerProfileRadar({
       setCargando(true)
 
       try {
-        setValoraciones(await obtenerValoracionesMediasJugador(jugadorId))
+        setValoraciones(
+          await obtenerValoracionesMediasJugador(jugadorId, perfilScouting),
+        )
       } catch {
         setValoraciones([])
       } finally {
@@ -133,13 +192,15 @@ function PlayerProfileRadar({
     }
 
     void cargarPerfil()
-  }, [jugadorId, versionActualizacion])
+  }, [jugadorId, perfilScouting, versionActualizacion])
+
+  const areas = perfilScouting === 'portero' ? AREAS_PORTERO : AREAS
 
   const valoracionesPorNombre = new Map(
     valoraciones.map((valoracion) => [valoracion.nombre, valoracion]),
   )
-  const puntos: PuntoRadar[] = AREAS.map((area, indice) => {
-    const angulo = -Math.PI / 2 + (indice * Math.PI * 2) / AREAS.length
+  const puntos: PuntoRadar[] = areas.map((area, indice) => {
+    const angulo = -Math.PI / 2 + (indice * Math.PI * 2) / areas.length
     const extremo = coordenadas(angulo, RADIO)
     const etiqueta = coordenadas(angulo, RADIO + 17)
     const valor = mediaArea(area, valoracionesPorNombre)
@@ -180,8 +241,8 @@ function PlayerProfileRadar({
           <polygon
             className="player-profile-radar-ring"
             key={anillo}
-            points={AREAS.map((_, indice) => {
-              const angulo = -Math.PI / 2 + (indice * Math.PI * 2) / AREAS.length
+            points={areas.map((_, indice) => {
+              const angulo = -Math.PI / 2 + (indice * Math.PI * 2) / areas.length
               const punto = coordenadas(angulo, RADIO * anillo)
               return `${punto.x},${punto.y}`
             }).join(' ')}

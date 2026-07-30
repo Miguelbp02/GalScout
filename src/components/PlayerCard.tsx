@@ -1,9 +1,8 @@
 import playerPlaceholder from '../assets/player-placeholder.png'
 import { Link } from 'react-router-dom'
+import { obtenerAbreviaturaPosicion } from '../constants/positionAbbreviations'
 import type { Jugador } from '../types/jugador'
 import type { Posicion } from '../types/posicion'
-import DominantFootIndicator from './DominantFootIndicator'
-import PositionFieldSelector from './PositionFieldSelector'
 
 interface PlayerCardProps {
   jugador: Jugador
@@ -30,6 +29,13 @@ function PlayerCard({ jugador, posiciones }: PlayerCardProps) {
     jugador.totalInformes === 1
       ? '1 informe'
       : `${jugador.totalInformes} informes`
+  const posicionesNaturales = posiciones
+    .filter((posicion) => jugador.posicionesNaturalesIds.includes(posicion.id))
+  const posicionesAptas = posiciones.filter(
+    (posicion) =>
+      jugador.posicionesAptasIds.includes(posicion.id) &&
+      !jugador.posicionesNaturalesIds.includes(posicion.id),
+  )
 
   return (
     <Link
@@ -39,7 +45,7 @@ function PlayerCard({ jugador, posiciones }: PlayerCardProps) {
     >
       <article className="card h-100 shadow-sm">
         <div className="card-body">
-          <div className="d-flex align-items-start justify-content-between gap-3">
+          <div className="player-card-header">
             <div className="d-flex align-items-center gap-3">
               <img
                 className="player-avatar"
@@ -58,28 +64,37 @@ function PlayerCard({ jugador, posiciones }: PlayerCardProps) {
                     </>
                   )}
                 </p>
+                {jugador.equipoActual && (
+                  <p className="player-card-team mb-0">{jugador.equipoActual}</p>
+                )}
               </div>
             </div>
             <span className={`badge ${claseEstado}`}>{jugador.estado}</span>
           </div>
 
-          <div className="player-card-main">
-            <div className="player-card-foot">
-              <span className="player-card-foot-label">Pierna dominante</span>
-              <DominantFootIndicator piernaDominante={jugador.piernaDominante} />
-            </div>
-
-            <div className="player-card-position-map">
-              {posiciones.length > 0 && (
-                <PositionFieldSelector
-                  disabled
-                  etiquetas="ninguna"
-                  modo="resumen"
-                  mostrarLeyendaResumen={false}
-                  posiciones={posiciones}
-                  posicionesAptasIds={jugador.posicionesAptasIds}
-                  posicionesNaturalesIds={jugador.posicionesNaturalesIds}
-                />
+          <div className="player-card-position">
+            <span className="player-card-position-label">Posiciones</span>
+            <div className="player-card-position-tags">
+              {posicionesNaturales.map((posicion) => (
+                <span
+                  className="player-card-position-tag player-card-position-tag--natural"
+                  key={`natural-${posicion.id}`}
+                  title={`Natural: ${posicion.nombre}`}
+                >
+                  {obtenerAbreviaturaPosicion(posicion.codigo)}
+                </span>
+              ))}
+              {posicionesAptas.map((posicion) => (
+                <span
+                  className="player-card-position-tag player-card-position-tag--apta"
+                  key={`apta-${posicion.id}`}
+                  title={`Apta: ${posicion.nombre}`}
+                >
+                  {obtenerAbreviaturaPosicion(posicion.codigo)}
+                </span>
+              ))}
+              {posicionesNaturales.length === 0 && posicionesAptas.length === 0 && (
+                <span className="player-card-position-empty">Sin indicar</span>
               )}
             </div>
           </div>

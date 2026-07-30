@@ -1,6 +1,9 @@
 import { supabase } from '../lib/supabase'
 import { obtenerCriteriosScouting } from './criteriaService'
-import type { ResumenValoracionCriterio } from '../types/criterio'
+import type {
+  PerfilScouting,
+  ResumenValoracionCriterio,
+} from '../types/criterio'
 
 interface ObservacionIdFila {
   id: string
@@ -13,13 +16,14 @@ interface ValoracionFila {
 
 export async function obtenerValoracionesMediasJugador(
   jugadorId: string,
+  perfil: PerfilScouting = 'campo',
 ): Promise<ResumenValoracionCriterio[]> {
   const [resultadoObservaciones, criterios] = await Promise.all([
     supabase
       .from('observaciones_jugador')
       .select('id')
       .eq('jugador_id', jugadorId),
-    obtenerCriteriosScouting(),
+    obtenerCriteriosScouting(perfil),
   ])
 
   if (resultadoObservaciones.error) {

@@ -156,6 +156,16 @@ function PositionFieldSelector({
 
   function ciclarPosicion(posicion: Posicion) {
     const estado = estadoPosicion(posicion)
+
+    // El portero es una posición exclusiva: nunca puede ser solamente apta.
+    if (posicion.codigo === 'portero') {
+      onCambiarEstadoPosicion(
+        posicion.id,
+        estado === 'natural' ? null : 'natural',
+      )
+      return
+    }
+
     const siguienteEstado =
       estado === null ? 'apta' : estado === 'apta' ? 'natural' : null
 
@@ -209,6 +219,11 @@ function PositionFieldSelector({
           {zonasCampo.map((zona) => {
             const posicion = posicionesPorCodigo.get(zona.codigo)
             const geometria = geometriaZona(zona)
+            const porteroNatural = posiciones.some(
+              (posicionCatalogo) =>
+                posicionCatalogo.codigo === 'portero' &&
+                posicionesNaturalesIds.includes(posicionCatalogo.id),
+            )
 
             if (!posicion) {
               return (
@@ -239,7 +254,11 @@ function PositionFieldSelector({
                 className={`position-zone ${estado} ${
                   conRecorte ? 'position-zone-recortada' : ''
                 }`}
-                disabled={disabled || esResumen}
+                disabled={
+                  disabled ||
+                  esResumen ||
+                  (porteroNatural && posicion.codigo !== 'portero')
+                }
                 key={zona.codigo}
                 style={estiloZona(geometria)}
                 title={posicion.nombre}

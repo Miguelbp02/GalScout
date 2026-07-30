@@ -13,6 +13,7 @@ export interface DatosJugador {
   piernaDominante: PiernaDominante
   estado: EstadoJugador
   categoria: CategoriaJugador | null
+  equipoActual: string | null
 }
 
 export interface Jugador extends DatosJugador {
@@ -31,4 +32,5 @@ export interface NuevoJugador {
   piernaDominante: PiernaDominante
   estado: EstadoJugador
   categoria: CategoriaJugador | ''
+  equipoActual: string
 }

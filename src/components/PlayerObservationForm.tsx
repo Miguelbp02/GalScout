@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { obtenerCriteriosScouting } from '../services/criteriaService'
-import type { CriterioScouting, GrupoCriterio } from '../types/criterio'
+import type {
+  CriterioScouting,
+  GrupoCriterio,
+  PerfilScouting,
+} from '../types/criterio'
 import type { NuevaObservacion } from '../types/observacion'
 
 interface PlayerObservationFormProps {
   onCrearObservacion: (observacion: NuevaObservacion) => Promise<void>
   onAlturaCambiar?: (altura: number) => void
+  perfilScouting: PerfilScouting
 }
 
 const grupos: GrupoCriterio[] = ['Físico', 'Técnico', 'Táctico', 'Mental']
@@ -17,6 +22,7 @@ function obtenerFechaActual() {
 function PlayerObservationForm({
   onCrearObservacion,
   onAlturaCambiar,
+  perfilScouting,
 }: PlayerObservationFormProps) {
   const tarjetaRef = useRef<HTMLElement>(null)
   const [fechaObservacion, setFechaObservacion] = useState(obtenerFechaActual)
@@ -30,8 +36,12 @@ function PlayerObservationForm({
 
   useEffect(() => {
     async function cargarCriterios() {
+      setCargandoCriterios(true)
+      setErrorCriterios(null)
+      setPuntuaciones({})
+
       try {
-        setCriterios(await obtenerCriteriosScouting())
+        setCriterios(await obtenerCriteriosScouting(perfilScouting))
       } catch {
         setErrorCriterios('No se han podido cargar los criterios de valoración.')
       } finally {
@@ -40,7 +50,7 @@ function PlayerObservationForm({
     }
 
     void cargarCriterios()
-  }, [])
+  }, [perfilScouting])
 
   useEffect(() => {
     const tarjeta = tarjetaRef.current

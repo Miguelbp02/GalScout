@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import logoAppOjeo from '../assets/logoAppOjeo.png'
 import playerPlaceholder from '../assets/player-placeholder.png'
+import AppFooter from '../components/AppFooter'
+import AppHeader from '../components/AppHeader'
 import PlayerAverageRatings from '../components/PlayerAverageRatings'
 import PlayerProfileRadar from '../components/PlayerProfileRadar'
 import GeneralRatingForm from '../components/GeneralRatingForm'
@@ -26,6 +27,7 @@ import {
   obtenerValoracionesGeneralesJugador,
 } from '../services/generalRatingService'
 import type { Jugador } from '../types/jugador'
+import type { PerfilScouting } from '../types/criterio'
 import type { Posicion } from '../types/posicion'
 import type {
   NuevaObservacion,
@@ -35,6 +37,8 @@ import type {
   NuevaValoracionGeneral,
   ValoracionGeneral,
 } from '../types/valoracionGeneral'
+
+type PestanaFicha = 'general' | 'historial' | 'estadisticas'
 
 function PlayerDetailPage() {
   const { jugadorId } = useParams()
@@ -53,6 +57,15 @@ function PlayerDetailPage() {
   const [posicionesAptasIds, setPosicionesAptasIds] = useState<number[]>([])
   const [perfilPosicionalCargado, setPerfilPosicionalCargado] = useState(false)
   const [alturaFormularioObservacion, setAlturaFormularioObservacion] = useState(0)
+  const [pestanaFicha, setPestanaFicha] = useState<PestanaFicha>('general')
+
+  const perfilScouting: PerfilScouting = posiciones.some(
+    (posicion) =>
+      posicion.codigo === 'portero' &&
+      posicionesNaturalesIds.includes(posicion.id),
+  )
+    ? 'portero'
+    : 'campo'
 
   useEffect(() => {
     const id = jugadorId ?? ''
@@ -201,24 +214,20 @@ function PlayerDetailPage() {
 
   return (
     <main className="app-shell player-detail-shell">
-      <header className="app-header player-detail-header d-flex align-items-center justify-content-between gap-3">
-        <div className="app-brand">
-          <div className="app-logo-crop app-logo-crop-header">
-            <img src={logoAppOjeo} alt="Logo de Ojeo Galicia" />
+      <AppHeader
+        className="player-detail-header"
+        mostrarNavegacion={false}
+        acciones={
+          <div className="d-flex flex-wrap justify-content-end gap-2">
+            <Link className="btn btn-primary" to={`/jugadores/${jugadorId}/editar`}>
+              Editar jugador
+            </Link>
+            <Link className="btn btn-outline-secondary" to="/">
+              Volver a jugadores
+            </Link>
           </div>
-          <div>
-            <p className="app-kicker">Ojeo</p>
-          </div>
-        </div>
-        <div className="d-flex flex-wrap justify-content-end gap-2">
-          <Link className="btn btn-primary" to={`/jugadores/${jugadorId}/editar`}>
-            Editar jugador
-          </Link>
-          <Link className="btn btn-outline-secondary" to="/">
-            Volver a jugadores
-          </Link>
-        </div>
-      </header>
+        }
+      />
 
       {cargando && jugadorId && (
         <p className="py-5 text-center text-body-secondary">Cargando ficha…</p>
@@ -232,8 +241,39 @@ function PlayerDetailPage() {
 
       {jugador && !cargando && !errorVisible && (
         <>
-          <section className="card player-detail-summary mt-4 shadow-sm">
+          <section
+            className={`card player-detail-summary player-detail-summary--${pestanaFicha} mt-4 shadow-sm`}
+          >
             <div className="card-body p-3">
+              <nav
+                aria-label="Secciones de la ficha del jugador"
+                className="player-detail-tabs"
+                role="tablist"
+              >
+                {(
+                  [
+                    ['general', 'General'],
+                    ['historial', 'Historial'],
+                    ['estadisticas', 'Estadísticas'],
+                  ] as const
+                ).map(([pestana, etiqueta]) => (
+                  <button
+                    aria-selected={pestanaFicha === pestana}
+                    className={`player-detail-tab ${
+                      pestanaFicha === pestana ? 'active' : ''
+                    }`}
+                    key={pestana}
+                    role="tab"
+                    type="button"
+                    onClick={() => setPestanaFicha(pestana)}
+                  >
+                    {etiqueta}
+                  </button>
+                ))}
+              </nav>
+
+              {pestanaFicha === 'general' && (
+                <>
               <div className="player-detail-overview">
                 <div className="player-detail-identity">
                   <img
@@ -270,6 +310,13 @@ function PlayerDetailPage() {
                       </>
                     )}
 
+                    {jugador.equipoActual && (
+                      <>
+                        <dt className="col-sm-6 text-body-secondary">Equipo</dt>
+                        <dd className="col-sm-6">{jugador.equipoActual}</dd>
+                      </>
+                    )}
+
                     <dt className="col-sm-6 text-body-secondary">Pierna dominante</dt>
                     <dd className="col-sm-6 mb-0 player-dominant-foot-value">
                       <DominantFootIndicator piernaDominante={jugador.piernaDominante} />
@@ -280,6 +327,7 @@ function PlayerDetailPage() {
                 <div className="player-detail-radar">
                   <PlayerProfileRadar
                     jugadorId={jugador.id}
+                    perfilScouting={perfilScouting}
                     versionActualizacion={versionValoraciones}
                   />
                 </div>
@@ -296,21 +344,44 @@ function PlayerDetailPage() {
                   </div>
                 )}
               </div>
+
+                <div className="player-detail-average-ratings">
+                  <PlayerAverageRatings
+                    jugadorId={jugador.id}
+                    perfilScouting={perfilScouting}
+                    versionActualizacion={versionValoraciones}
+                  />
+                </div>
+                </>
+              )}
+
+              {pestanaFicha === 'historial' && (
+                <section className="player-detail-empty-tab" role="tabpanel">
+                  <h2 className="h5">Historial deportivo</h2>
+                  <p className="mb-0 text-body-secondary">
+                    AquÃ­ aparecerÃ¡ la trayectoria del jugador por equipos y temporadas.
+                  </p>
+                </section>
+              )}
+
+              {pestanaFicha === 'estadisticas' && (
+                <section className="player-detail-empty-tab" role="tabpanel">
+                  <h2 className="h5">Estadísticas</h2>
+                  <p className="mb-0 text-body-secondary">
+                    AquÃ­ aparecerÃ¡n los datos de partidos, minutos, goles y otras
+                    estadÃ­sticas de temporada.
+                  </p>
+                </section>
+              )}
             </div>
           </section>
-
-          <div className="mt-4">
-            <PlayerAverageRatings
-              jugadorId={jugador.id}
-              versionActualizacion={versionValoraciones}
-            />
-          </div>
 
           <div className="row g-4 mt-1">
             <div className="col-12 col-xl-5">
               <PlayerObservationForm
                 onCrearObservacion={añadirObservacion}
                 onAlturaCambiar={setAlturaFormularioObservacion}
+                perfilScouting={perfilScouting}
               />
             </div>
 
@@ -345,6 +416,7 @@ function PlayerDetailPage() {
           </section>
         </>
       )}
+      <AppFooter />
     </main>
   )
 }

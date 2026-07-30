@@ -2,15 +2,19 @@ import { useEffect, useState } from 'react'
 import { obtenerValoracionesMediasJugador } from '../services/playerRatingsService'
 import type {
   GrupoCriterio,
+  PerfilScouting,
   ResumenValoracionCriterio,
 } from '../types/criterio'
 
 interface PlayerAverageRatingsProps {
   jugadorId: string
   versionActualizacion: number
+  perfilScouting: PerfilScouting
 }
 
 const grupos: GrupoCriterio[] = ['Físico', 'Técnico', 'Táctico', 'Mental']
+
+type OrdenValoraciones = 'original' | 'descendente' | 'ascendente'
 
 function formatearMedia(media: number) {
   return new Intl.NumberFormat('es-ES', {
@@ -30,10 +34,12 @@ function obtenerClaseNivel(media: number) {
 function PlayerAverageRatings({
   jugadorId,
   versionActualizacion,
+  perfilScouting,
 }: PlayerAverageRatingsProps) {
   const [valoraciones, setValoraciones] = useState<ResumenValoracionCriterio[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [orden, setOrden] = useState<OrdenValoraciones>('descendente')
 
   useEffect(() => {
     async function cargarValoraciones() {
@@ -41,7 +47,9 @@ function PlayerAverageRatings({
       setError(null)
 
       try {
-        setValoraciones(await obtenerValoracionesMediasJugador(jugadorId))
+        setValoraciones(
+          await obtenerValoracionesMediasJugador(jugadorId, perfilScouting),
+        )
       } catch {
         setError('No se han podido cargar las valoraciones medias.')
       } finally {
@@ -50,17 +58,29 @@ function PlayerAverageRatings({
     }
 
     void cargarValoraciones()
-  }, [jugadorId, versionActualizacion])
+  }, [jugadorId, perfilScouting, versionActualizacion])
 
   return (
-    <section
-      className="card h-100 shadow-sm player-average-ratings"
-      aria-labelledby="valoraciones-title"
-    >
-      <div className="card-body p-3 p-md-4">
-        <h2 id="valoraciones-title" className="h4 mb-1">
-          Valoraciones medias
-        </h2>
+    <section className="player-average-ratings" aria-labelledby="valoraciones-title">
+      <div>
+        <div className="average-ratings-header">
+          <h2 id="valoraciones-title" className="h4 mb-0">
+            Valoraciones medias
+          </h2>
+          <label className="average-sort-control">
+            <span>Orden</span>
+            <select
+              aria-label="Ordenar valoraciones medias"
+              className="form-select form-select-sm"
+              value={orden}
+              onChange={(event) => setOrden(event.target.value as OrdenValoraciones)}
+            >
+              <option value="original">Original</option>
+              <option value="descendente">Mejor a peor</option>
+              <option value="ascendente">Peor a mejor</option>
+            </select>
+          </label>
+        </div>
         {cargando && <p className="text-body-secondary mb-0">Cargando valoraciones…</p>}
 
         {error && (
@@ -78,9 +98,14 @@ function PlayerAverageRatings({
         {!cargando && !error && valoraciones.length > 0 && (
           <div className="row g-3">
             {grupos.map((grupo) => {
-              const valoracionesDelGrupo = valoraciones.filter(
-                (valoracion) => valoracion.grupo === grupo,
-              )
+              const valoracionesDelGrupo = valoraciones
+                .filter((valoracion) => valoracion.grupo === grupo)
+                .sort((primera, segunda) => {
+                  if (orden === 'descendente') return segunda.media - primera.media
+                  if (orden === 'ascendente') return primera.media - segunda.media
+
+                  return 0
+                })
 
               if (valoracionesDelGrupo.length === 0) return null
 

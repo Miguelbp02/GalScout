@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import PositionFieldSelector from './PositionFieldSelector'
 import { obtenerPosiciones } from '../services/positionService'
+import { obtenerEquipos } from '../services/teamService'
 import type {
   EstadoJugador,
   CategoriaJugador,
@@ -8,6 +9,7 @@ import type {
   PiernaDominante,
 } from '../types/jugador'
 import type { Posicion } from '../types/posicion'
+import { limitesFiltrosJugadores } from '../types/filtrosJugador'
 
 interface PlayerFormProps {
   modo?: 'crear' | 'editar'
@@ -25,6 +27,7 @@ const datosJugadorIniciales: NuevoJugador = {
   piernaDominante: 'Derecha',
   estado: 'En equipo',
   categoria: '',
+  equipoActual: '',
 }
 
 function contienePosicion(posiciones: number[], posicionId: number) {
@@ -59,6 +62,7 @@ function PlayerForm({
   const [edadTexto, setEdadTexto] = useState(String(jugadorInicial.edad))
   const [alturaTexto, setAlturaTexto] = useState(String(jugadorInicial.alturaCm))
   const [posiciones, setPosiciones] = useState<Posicion[]>([])
+  const [equipos, setEquipos] = useState<string[]>([])
   const [cargandoPosiciones, setCargandoPosiciones] = useState(true)
   const [errorPosiciones, setErrorPosiciones] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -78,11 +82,36 @@ function PlayerForm({
     void cargarPosiciones()
   }, [])
 
+  useEffect(() => {
+    async function cargarEquipos() {
+      try {
+        const equiposObtenidos = await obtenerEquipos()
+        setEquipos(equiposObtenidos.map((equipo) => equipo.nombre))
+      } catch {
+        // El alta sigue funcionando aunque las sugerencias no se carguen.
+      }
+    }
+
+    void cargarEquipos()
+  }, [])
+
   function cambiarEstadoPosicion(
     posicionId: number,
     tipo: 'natural' | 'apta' | null,
   ) {
     setJugador((jugadorActual) => {
+      const esPortero = posiciones.some(
+        (posicion) => posicion.id === posicionId && posicion.codigo === 'portero',
+      )
+
+      if (esPortero && tipo === 'natural') {
+        return {
+          ...jugadorActual,
+          posicionesNaturalesIds: [posicionId],
+          posicionesAptasIds: [],
+        }
+      }
+
       if (tipo === 'natural') {
         return {
           ...jugadorActual,
@@ -131,7 +160,14 @@ function PlayerForm({
     const edad = Number(edadTexto)
     const alturaCm = Number(alturaTexto)
 
-    if (!Number.isInteger(edad) || edad < 1 || !Number.isInteger(alturaCm) || alturaCm < 1) {
+    if (
+      !Number.isInteger(edad) ||
+      edad < limitesFiltrosJugadores.edadMinima ||
+      edad > limitesFiltrosJugadores.edadMaxima ||
+      !Number.isInteger(alturaCm) ||
+      alturaCm < limitesFiltrosJugadores.alturaMinima ||
+      alturaCm > limitesFiltrosJugadores.alturaMaxima
+    ) {
       setError('Indica una edad y una altura vÃ¡lidas.')
       return
     }
@@ -214,7 +250,8 @@ function PlayerForm({
                 className="form-control"
                 disabled={formularioBloqueado}
                 id="edad"
-                min="1"
+                max={limitesFiltrosJugadores.edadMaxima}
+                min={limitesFiltrosJugadores.edadMinima}
                 required
                 type="number"
                 value={edadTexto}
@@ -244,7 +281,8 @@ function PlayerForm({
                 className="form-control"
                 disabled={formularioBloqueado}
                 id="altura"
-                min="1"
+                max={limitesFiltrosJugadores.alturaMaxima}
+                min={limitesFiltrosJugadores.alturaMinima}
                 required
                 type="number"
                 value={alturaTexto}
@@ -265,12 +303,41 @@ function PlayerForm({
                   setJugador({
                     ...jugador,
                     estado: evento.target.value as EstadoJugador,
+                    equipoActual:
+                      evento.target.value === 'Libre' ? '' : jugador.equipoActual,
                   })
                 }
               >
                 <option value="En equipo">En equipo</option>
                 <option value="Libre">Libre</option>
               </select>
+            </div>
+
+            <div className="col-12">
+              <label className="form-label" htmlFor="equipo-actual">
+                Equipo actual <span className="text-body-secondary">(opcional)</span>
+              </label>
+              <input
+                className="form-control"
+                disabled={formularioBloqueado || jugador.estado === 'Libre'}
+                id="equipo-actual"
+                list="equipos-registrados"
+                placeholder={
+                  jugador.estado === 'Libre'
+                    ? 'El jugador esta libre'
+                    : 'Escribe o selecciona un equipo'
+                }
+                type="text"
+                value={jugador.equipoActual}
+                onChange={(evento) =>
+                  setJugador({ ...jugador, equipoActual: evento.target.value })
+                }
+              />
+              <datalist id="equipos-registrados">
+                {equipos.map((equipo) => (
+                  <option key={equipo} value={equipo} />
+                ))}
+              </datalist>
             </div>
 
             <div className="col-12 col-md-6">

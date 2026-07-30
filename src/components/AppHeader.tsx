@@ -68,6 +68,12 @@ function AppHeader({
           >
             Añadir jugador
           </NavLink>
+          <NavLink
+            className={({ isActive }) => `app-nav-link ${isActive ? 'active' : ''}`}
+            to="/comparar"
+          >
+            Comparar
+          </NavLink>
           {herramientas}
         </nav>
       )}

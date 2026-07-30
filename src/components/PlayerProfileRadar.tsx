@@ -1,4 +1,12 @@
 import { useEffect, useState } from 'react'
+import {
+  AREAS,
+  AREAS_PORTERO,
+  CENTRO_RADAR,
+  RADIO_RADAR,
+  coordenadasRadar,
+  mediaArea,
+} from '../constants/radarAreas'
 import { obtenerValoracionesMediasJugador } from '../services/playerRatingsService'
 import type {
   PerfilScouting,
@@ -11,11 +19,6 @@ interface PlayerProfileRadarProps {
   perfilScouting: PerfilScouting
 }
 
-interface AreaRadar {
-  etiqueta: string
-  criterios: string[]
-}
-
 interface PuntoRadar {
   etiqueta: string
   valor: number | null
@@ -25,147 +28,6 @@ interface PuntoRadar {
   extremoY: number
   etiquetaX: number
   etiquetaY: number
-}
-
-const AREAS: AreaRadar[] = [
-  {
-    etiqueta: 'Físico',
-    criterios: [
-      'Aceleración',
-      'Velocidad punta',
-      'Agilidad',
-      'Resistencia',
-      'Fuerza en duelos',
-      'Potencia de salto',
-      'Equilibrio',
-    ],
-  },
-  {
-    etiqueta: 'Técnica',
-    criterios: [
-      'Control orientado',
-      'Conducción',
-      'Regate 1v1 ofensivo',
-      'Uso de pierna no dominante',
-    ],
-  },
-  {
-    etiqueta: 'Pase',
-    criterios: [
-      'Pase corto',
-      'Pase largo',
-      'Centros',
-      'Visión de juego',
-      'Dirección de juego con balón',
-    ],
-  },
-  {
-    etiqueta: 'Ataque',
-    criterios: [
-      'Golpeo potente',
-      'Golpeo preciso',
-      'Definición',
-      'Juego de cabeza',
-      'Desmarque',
-    ],
-  },
-  {
-    etiqueta: 'Defensa',
-    criterios: [
-      'Posicionamiento defensivo',
-      'Anticipación e interceptación',
-      'Defensa 1v1',
-      'Trabajo de presión',
-      'Compromiso defensivo',
-    ],
-  },
-  {
-    etiqueta: 'Mental',
-    criterios: [
-      'Toma de decisiones',
-      'Transiciones',
-      'Comprensión del rol',
-      'Concentración',
-      'Competitividad',
-      'Serenidad bajo presión',
-      'Liderazgo y comunicación',
-    ],
-  },
-]
-
-const AREAS_PORTERO: AreaRadar[] = [
-  {
-    etiqueta: 'Físico',
-    criterios: [
-      'Explosividad',
-      'Agilidad',
-      'Potencia de salto',
-      'Alcance aéreo',
-      'Velocidad de desplazamiento',
-    ],
-  },
-  {
-    etiqueta: 'Técnica',
-    criterios: ['Blocaje', 'Desvíos y rechaces', 'Estiradas'],
-  },
-  {
-    etiqueta: 'Juego',
-    criterios: [
-      'Juego de pies',
-      'Pase corto',
-      'Desplazamiento largo',
-      'Saque de mano',
-      'Golpeo con pierna no dominante',
-    ],
-  },
-  {
-    etiqueta: 'Salidas',
-    criterios: ['1 contra 1', 'Salidas aéreas', 'Salidas al espacio'],
-  },
-  {
-    etiqueta: 'Área',
-    criterios: [
-      'Colocación',
-      'Dominio del área',
-      'Lectura de centros',
-      'Organización defensiva',
-      'Gestión de la línea defensiva',
-    ],
-  },
-  {
-    etiqueta: 'Mental',
-    criterios: [
-      'Concentración',
-      'Toma de decisiones',
-      'Serenidad bajo presión',
-      'Valentía',
-      'Comunicación y liderazgo',
-      'Capacidad de reacción tras error',
-    ],
-  },
-]
-
-const CENTRO = 100
-const RADIO = 66
-
-function mediaArea(
-  area: AreaRadar,
-  valoracionesPorNombre: Map<string, ResumenValoracionCriterio>,
-) {
-  const valoraciones = area.criterios
-    .map((criterio) => valoracionesPorNombre.get(criterio)?.media)
-    .filter((media): media is number => media !== undefined)
-
-  if (valoraciones.length === 0) return null
-
-  return valoraciones.reduce((suma, media) => suma + media, 0) / valoraciones.length
-}
-
-function coordenadas(angulo: number, radio: number) {
-  return {
-    x: CENTRO + Math.cos(angulo) * radio,
-    y: CENTRO + Math.sin(angulo) * radio,
-  }
 }
 
 function PlayerProfileRadar({
@@ -201,10 +63,10 @@ function PlayerProfileRadar({
   )
   const puntos: PuntoRadar[] = areas.map((area, indice) => {
     const angulo = -Math.PI / 2 + (indice * Math.PI * 2) / areas.length
-    const extremo = coordenadas(angulo, RADIO)
-    const etiqueta = coordenadas(angulo, RADIO + 17)
+    const extremo = coordenadasRadar(angulo, RADIO_RADAR)
+    const etiqueta = coordenadasRadar(angulo, RADIO_RADAR + 17)
     const valor = mediaArea(area, valoracionesPorNombre)
-    const punto = coordenadas(angulo, ((valor ?? 0) / 20) * RADIO)
+    const punto = coordenadasRadar(angulo, ((valor ?? 0) / 20) * RADIO_RADAR)
 
     return {
       etiqueta: area.etiqueta,
@@ -243,7 +105,7 @@ function PlayerProfileRadar({
             key={anillo}
             points={areas.map((_, indice) => {
               const angulo = -Math.PI / 2 + (indice * Math.PI * 2) / areas.length
-              const punto = coordenadas(angulo, RADIO * anillo)
+              const punto = coordenadasRadar(angulo, RADIO_RADAR * anillo)
               return `${punto.x},${punto.y}`
             }).join(' ')}
           />
@@ -253,9 +115,9 @@ function PlayerProfileRadar({
           <line
             className="player-profile-radar-axis"
             key={punto.etiqueta}
-            x1={CENTRO}
+            x1={CENTRO_RADAR}
             x2={punto.extremoX}
-            y1={CENTRO}
+            y1={CENTRO_RADAR}
             y2={punto.extremoY}
           />
         ))}

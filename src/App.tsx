@@ -12,6 +12,7 @@ import PlayerListSkeleton from './components/PlayerListSkeleton'
 import { supabase } from './lib/supabase'
 import PlayerDetailPage from './pages/PlayerDetailPage'
 import EditPlayerPage from './pages/EditPlayerPage'
+import ComparePlayersPage from './pages/ComparePlayersPage'
 import { crearJugador, obtenerJugadores } from './services/playerService'
 import type { Jugador, NuevoJugador } from './types/jugador'
 import {
@@ -208,6 +209,7 @@ function App() {
     <Routes>
       <Route path="/" element={pantallaPrincipal} />
       <Route path="/jugadores/nuevo" element={pantallaNuevoJugador} />
+      <Route path="/comparar" element={<ComparePlayersPage />} />
       <Route path="/jugadores/:jugadorId/editar" element={<EditPlayerPage />} />
       <Route path="/jugadores/:jugadorId" element={<PlayerDetailPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

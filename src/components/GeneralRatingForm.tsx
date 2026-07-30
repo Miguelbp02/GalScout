@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { NuevaValoracionGeneral } from '../types/valoracionGeneral'
+import { useToast } from './ToastContext'
 
 interface GeneralRatingFormProps {
   onCrearValoracion: (valoracion: NuevaValoracionGeneral) => Promise<void>
@@ -15,6 +16,7 @@ function GeneralRatingForm({ onCrearValoracion }: GeneralRatingFormProps) {
   const [comentario, setComentario] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
+  const { mostrarToast } = useToast()
 
   async function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
@@ -36,6 +38,7 @@ function GeneralRatingForm({ onCrearValoracion }: GeneralRatingFormProps) {
       setFechaValoracion(obtenerFechaActual())
       setPuntuacion('')
       setComentario('')
+      mostrarToast('Valoración general guardada')
     } catch {
       setError('No se ha podido guardar la valoración general.')
     } finally {

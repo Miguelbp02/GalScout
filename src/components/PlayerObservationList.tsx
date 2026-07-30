@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import HistoryListSkeleton from './HistoryListSkeleton'
 import TrashIcon from './TrashIcon'
 import type { ObservacionJugador } from '../types/observacion'
 
@@ -136,7 +137,7 @@ function PlayerObservationList({
           </p>
         )}
 
-        {cargando && <p className="text-body-secondary">Cargando observaciones…</p>}
+        {cargando && <HistoryListSkeleton />}
 
         {error && (
           <p className="alert alert-danger py-2" role="alert">

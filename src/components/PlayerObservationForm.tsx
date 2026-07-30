@@ -6,6 +6,7 @@ import type {
   PerfilScouting,
 } from '../types/criterio'
 import type { NuevaObservacion } from '../types/observacion'
+import { useToast } from './ToastContext'
 
 interface PlayerObservationFormProps {
   onCrearObservacion: (observacion: NuevaObservacion) => Promise<void>
@@ -33,6 +34,7 @@ function PlayerObservationForm({
   const [errorCriterios, setErrorCriterios] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
+  const { mostrarToast } = useToast()
 
   useEffect(() => {
     async function cargarCriterios() {
@@ -108,6 +110,7 @@ function PlayerObservationForm({
       setFechaObservacion(obtenerFechaActual())
       setNotas('')
       setPuntuaciones({})
+      mostrarToast('Observación guardada')
     } catch {
       setError('No se ha podido guardar la observación. Inténtalo de nuevo.')
     } finally {

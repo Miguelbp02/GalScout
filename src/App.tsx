@@ -8,6 +8,7 @@ import LoginForm from './components/LoginForm'
 import PlayerFilters from './components/PlayerFilters'
 import PlayerForm from './components/PlayerForm'
 import PlayerList from './components/PlayerList'
+import PlayerListSkeleton from './components/PlayerListSkeleton'
 import { supabase } from './lib/supabase'
 import PlayerDetailPage from './pages/PlayerDetailPage'
 import EditPlayerPage from './pages/EditPlayerPage'
@@ -149,9 +150,7 @@ function App() {
         }
       />
 
-      {jugadoresCargando && (
-        <p className="py-5 text-center text-body-secondary">Cargando jugadores…</p>
-      )}
+      {jugadoresCargando && <PlayerListSkeleton />}
 
       {errorJugadores && (
         <p className="alert alert-danger mt-5" role="alert">

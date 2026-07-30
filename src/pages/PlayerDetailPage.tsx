@@ -7,10 +7,13 @@ import PlayerAverageRatings from '../components/PlayerAverageRatings'
 import PlayerProfileRadar from '../components/PlayerProfileRadar'
 import GeneralRatingForm from '../components/GeneralRatingForm'
 import GeneralRatingList from '../components/GeneralRatingList'
+import PlayerDetailSkeleton from '../components/PlayerDetailSkeleton'
 import PlayerObservationForm from '../components/PlayerObservationForm'
 import PlayerObservationList from '../components/PlayerObservationList'
 import PositionFieldSelector from '../components/PositionFieldSelector'
 import DominantFootIndicator from '../components/DominantFootIndicator'
+import TeamHistoryForm from '../components/TeamHistoryForm'
+import TeamHistoryList from '../components/TeamHistoryList'
 import {
   crearObservacionJugador,
   eliminarObservaciones,
@@ -26,6 +29,11 @@ import {
   eliminarValoracionesGenerales,
   obtenerValoracionesGeneralesJugador,
 } from '../services/generalRatingService'
+import {
+  crearHistorialEquipo,
+  eliminarHistorialEquipos,
+  obtenerHistorialEquiposJugador,
+} from '../services/teamHistoryService'
 import type { Jugador } from '../types/jugador'
 import type { PerfilScouting } from '../types/criterio'
 import type { Posicion } from '../types/posicion'
@@ -37,6 +45,10 @@ import type {
   NuevaValoracionGeneral,
   ValoracionGeneral,
 } from '../types/valoracionGeneral'
+import type {
+  HistorialEquipoJugador,
+  NuevoHistorialEquipo,
+} from '../types/historialEquipo'
 
 type PestanaFicha = 'general' | 'historial' | 'estadisticas'
 
@@ -58,6 +70,9 @@ function PlayerDetailPage() {
   const [perfilPosicionalCargado, setPerfilPosicionalCargado] = useState(false)
   const [alturaFormularioObservacion, setAlturaFormularioObservacion] = useState(0)
   const [pestanaFicha, setPestanaFicha] = useState<PestanaFicha>('general')
+  const [historialEquipos, setHistorialEquipos] = useState<HistorialEquipoJugador[]>([])
+  const [historialCargando, setHistorialCargando] = useState(false)
+  const [errorHistorial, setErrorHistorial] = useState<string | null>(null)
 
   const perfilScouting: PerfilScouting = posiciones.some(
     (posicion) =>
@@ -176,6 +191,31 @@ function PlayerDetailPage() {
     void cargarPerfilPosicional()
   }, [jugador?.id])
 
+  useEffect(() => {
+    const id = jugador?.id
+    if (!id) return
+
+    const jugadorIdParaHistorial = id
+
+    async function cargarHistorial() {
+      setHistorialCargando(true)
+      setErrorHistorial(null)
+
+      try {
+        const historialObtenido = await obtenerHistorialEquiposJugador(
+          jugadorIdParaHistorial,
+        )
+        setHistorialEquipos(historialObtenido)
+      } catch {
+        setErrorHistorial('No se ha podido cargar el historial de equipos.')
+      } finally {
+        setHistorialCargando(false)
+      }
+    }
+
+    void cargarHistorial()
+  }, [jugador?.id])
+
   async function añadirObservacion(observacion: NuevaObservacion) {
     if (!jugador) return
 
@@ -208,6 +248,20 @@ function PlayerDetailPage() {
     setValoracionesGenerales(await obtenerValoracionesGeneralesJugador(jugador.id))
   }
 
+  async function añadirHistorialEquipo(historial: NuevoHistorialEquipo) {
+    if (!jugador) return
+
+    await crearHistorialEquipo(jugador.id, historial)
+    setHistorialEquipos(await obtenerHistorialEquiposJugador(jugador.id))
+  }
+
+  async function eliminarHistorialEquiposSeleccionados(ids: string[]) {
+    if (!jugador) return
+
+    await eliminarHistorialEquipos(ids)
+    setHistorialEquipos(await obtenerHistorialEquiposJugador(jugador.id))
+  }
+
   const errorVisible = jugadorId
     ? error
     : 'No se ha recibido un identificador de jugador válido.'
@@ -229,9 +283,7 @@ function PlayerDetailPage() {
         }
       />
 
-      {cargando && jugadorId && (
-        <p className="py-5 text-center text-body-secondary">Cargando ficha…</p>
-      )}
+      {cargando && jugadorId && <PlayerDetailSkeleton />}
 
       {errorVisible && (
         <section className="alert alert-danger mt-5" role="alert">
@@ -356,11 +408,19 @@ function PlayerDetailPage() {
               )}
 
               {pestanaFicha === 'historial' && (
-                <section className="player-detail-empty-tab" role="tabpanel">
-                  <h2 className="h5">Historial deportivo</h2>
-                  <p className="mb-0 text-body-secondary">
-                    AquÃ­ aparecerÃ¡ la trayectoria del jugador por equipos y temporadas.
+                <section role="tabpanel">
+                  <h2 className="h5 mb-2">Historial deportivo</h2>
+                  <p className="text-body-secondary small mb-4">
+                    Registra las etapas del jugador por equipos y temporadas, con goles
+                    y minutos cuando se conozcan.
                   </p>
+                  <TeamHistoryForm onCrearHistorial={añadirHistorialEquipo} />
+                  <TeamHistoryList
+                    cargando={historialCargando}
+                    error={errorHistorial}
+                    historial={historialEquipos}
+                    onEliminarHistorial={eliminarHistorialEquiposSeleccionados}
+                  />
                 </section>
               )}
 
@@ -368,8 +428,8 @@ function PlayerDetailPage() {
                 <section className="player-detail-empty-tab" role="tabpanel">
                   <h2 className="h5">Estadísticas</h2>
                   <p className="mb-0 text-body-secondary">
-                    AquÃ­ aparecerÃ¡n los datos de partidos, minutos, goles y otras
-                    estadÃ­sticas de temporada.
+                    Aquí aparecerán los datos de partidos, minutos, goles y otras
+                    estadísticas de temporada.
                   </p>
                 </section>
               )}

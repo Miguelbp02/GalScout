@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import HistoryListSkeleton from './HistoryListSkeleton'
 import TrashIcon from './TrashIcon'
 import type { ValoracionGeneral } from '../types/valoracionGeneral'
 
@@ -96,7 +97,7 @@ function GeneralRatingList({
         )}
       </div>
 
-      {cargando && <p className="text-body-secondary">Cargando historial…</p>}
+      {cargando && <HistoryListSkeleton className="general-rating-item" />}
 
       {error && (
         <p className="alert alert-danger py-2" role="alert">

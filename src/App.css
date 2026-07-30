@@ -24,8 +24,13 @@
 }
 
 .card {
-  border-color: var(--app-border);
-  background-color: var(--app-surface-raised);
+  border-radius: 8px;
+  border-color: rgba(105, 126, 145, 0.62);
+  background: linear-gradient(145deg, #252c32 0%, #1d2328 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 20px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.26);
 }
 
 .app-brand {
@@ -196,6 +201,12 @@
 .player-detail-summary {
   position: relative;
   overflow: visible;
+  /* Fondo plano a propósito: las pestañas que sobresalen (.player-detail-tab)
+     necesitan que coincida exactamente con var(--app-surface-raised) para
+     fundirse sin costura con el panel. Un gradiente aquí rompería ese efecto. */
+  border-radius: var(--bs-card-border-radius);
+  background: var(--app-surface-raised);
+  box-shadow: none;
 }
 
 .player-detail-summary--general {
@@ -358,13 +369,6 @@
 .player-card-link .card {
   position: relative;
   z-index: 1;
-  border-radius: 8px;
-  border-color: rgba(105, 126, 145, 0.62);
-  background: linear-gradient(145deg, #252c32 0%, #1d2328 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 10px 20px rgba(0, 0, 0, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.26);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -1194,9 +1198,114 @@ h1 {
   --bs-btn-active-border-color: #365f84;
 }
 
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+  content: '';
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 12px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton-line:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton-tags {
+  display: flex;
+  gap: 0.28rem;
+}
+
+.skeleton-tag {
+  width: 1.9rem;
+  height: 1.15rem;
+  border-radius: 3px;
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toast-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  pointer-events: none;
+}
+
+.toast-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(97, 169, 107, 0.45);
+  border-radius: 10px;
+  background-color: var(--app-surface-raised);
+  color: var(--app-text);
+  font-size: 0.86rem;
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  animation: toast-in 0.22s ease-out;
+}
+
+.toast-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  color: var(--app-accent);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 600px) {
   .app-shell {
     padding: 24px 16px;
+  }
+
+  .toast-stack {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+  }
+
+  .toast-item {
+    justify-content: center;
   }
 
   .average-rating-row {

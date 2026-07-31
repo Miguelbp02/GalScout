@@ -16,6 +16,7 @@ interface PlayerFormProps {
   jugadorInicial?: NuevoJugador
   onCancelar?: () => void
   onGuardarJugador: (jugador: NuevoJugador) => Promise<void>
+  sinTarjeta?: boolean
 }
 
 const datosJugadorIniciales: NuevoJugador = {
@@ -57,6 +58,7 @@ function PlayerForm({
   jugadorInicial = datosJugadorIniciales,
   onCancelar,
   onGuardarJugador,
+  sinTarjeta = false,
 }: PlayerFormProps) {
   const [jugador, setJugador] = useState<NuevoJugador>(jugadorInicial)
   const [edadTexto, setEdadTexto] = useState(String(jugadorInicial.edad))
@@ -214,14 +216,8 @@ function PlayerForm({
   const edadFormulario = Number(edadTexto)
   const categoriasDisponibles = obtenerCategoriasDisponibles(edadFormulario)
 
-  return (
-    <section className="card shadow-sm mt-5" aria-labelledby="player-form-title">
-      <div className="card-body p-4">
-        <h2 id="player-form-title" className="h4 mb-4">
-          {titulo}
-        </h2>
-
-        <form onSubmit={enviarFormulario}>
+  const formulario = (
+    <form onSubmit={enviarFormulario}>
           <div className="row g-4 align-items-start">
             <div className="col-12 col-lg-5">
               <div className="row g-3">
@@ -437,7 +433,20 @@ function PlayerForm({
               </div>
             </div>
           </div>
-        </form>
+    </form>
+  )
+
+  if (sinTarjeta) {
+    return formulario
+  }
+
+  return (
+    <section className="card shadow-sm mt-5" aria-labelledby="player-form-title">
+      <div className="card-body p-4">
+        <h2 id="player-form-title" className="h4 mb-4">
+          {titulo}
+        </h2>
+        {formulario}
       </div>
     </section>
   )

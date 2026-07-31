@@ -12,7 +12,6 @@ import PlayerObservationForm from '../components/PlayerObservationForm'
 import PlayerObservationList from '../components/PlayerObservationList'
 import PositionFieldSelector from '../components/PositionFieldSelector'
 import DominantFootIndicator from '../components/DominantFootIndicator'
-import TeamHistoryForm from '../components/TeamHistoryForm'
 import TeamHistoryList from '../components/TeamHistoryList'
 import {
   actualizarObservacionJugador,
@@ -31,7 +30,6 @@ import {
   obtenerValoracionesGeneralesJugador,
 } from '../services/generalRatingService'
 import {
-  crearHistorialEquipo,
   eliminarHistorialEquipos,
   obtenerHistorialEquiposJugador,
 } from '../services/teamHistoryService'
@@ -46,10 +44,7 @@ import type {
   NuevaValoracionGeneral,
   ValoracionGeneral,
 } from '../types/valoracionGeneral'
-import type {
-  HistorialEquipoJugador,
-  NuevoHistorialEquipo,
-} from '../types/historialEquipo'
+import type { HistorialEquipoJugador } from '../types/historialEquipo'
 
 type PestanaFicha = 'general' | 'historial' | 'estadisticas'
 
@@ -260,13 +255,6 @@ function PlayerDetailPage() {
     setValoracionesGenerales(await obtenerValoracionesGeneralesJugador(jugador.id))
   }
 
-  async function añadirHistorialEquipo(historial: NuevoHistorialEquipo) {
-    if (!jugador) return
-
-    await crearHistorialEquipo(jugador.id, historial)
-    setHistorialEquipos(await obtenerHistorialEquiposJugador(jugador.id))
-  }
-
   async function eliminarHistorialEquiposSeleccionados(ids: string[]) {
     if (!jugador) return
 
@@ -423,10 +411,9 @@ function PlayerDetailPage() {
                 <section role="tabpanel">
                   <h2 className="h5 mb-2">Historial deportivo</h2>
                   <p className="text-body-secondary small mb-4">
-                    Registra las etapas del jugador por equipos y temporadas, con goles
-                    y minutos cuando se conozcan.
+                    Etapas del jugador por equipos y temporadas. Para añadir una nueva
+                    etapa, hazlo desde «Editar jugador».
                   </p>
-                  <TeamHistoryForm onCrearHistorial={añadirHistorialEquipo} />
                   <TeamHistoryList
                     cargando={historialCargando}
                     error={errorHistorial}

@@ -3,13 +3,18 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import AppFooter from '../components/AppFooter'
 import AppHeader from '../components/AppHeader'
 import PlayerForm from '../components/PlayerForm'
+import TeamHistoryForm from '../components/TeamHistoryForm'
 import { obtenerPerfilPosicionalJugador } from '../services/positionService'
 import {
   actualizarJugador,
   eliminarJugador,
   obtenerJugadorPorId,
 } from '../services/playerService'
+import { crearHistorialEquipo } from '../services/teamHistoryService'
 import type { Jugador, NuevoJugador } from '../types/jugador'
+import type { NuevoHistorialEquipo } from '../types/historialEquipo'
+
+type PestanaEdicion = 'datos' | 'historial'
 
 function EditPlayerPage() {
   const { jugadorId } = useParams()
@@ -19,6 +24,7 @@ function EditPlayerPage() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [eliminando, setEliminando] = useState(false)
+  const [pestanaEdicion, setPestanaEdicion] = useState<PestanaEdicion>('datos')
 
   useEffect(() => {
     const id = jugadorId ?? ''
@@ -66,6 +72,12 @@ function EditPlayerPage() {
 
     await actualizarJugador(jugadorId, datosJugador)
     navigate(`/jugadores/${jugadorId}`)
+  }
+
+  async function añadirHistorialEquipo(historial: NuevoHistorialEquipo) {
+    if (!jugadorId) return
+
+    await crearHistorialEquipo(jugadorId, historial)
   }
 
   async function eliminarJugadorActual() {
@@ -117,12 +129,59 @@ function EditPlayerPage() {
 
       {jugadorInicial && !cargando && (
         <>
-          <PlayerForm
-            jugadorInicial={jugadorInicial}
-            modo="editar"
-            onCancelar={() => navigate(`/jugadores/${jugadorId}`)}
-            onGuardarJugador={guardarCambios}
-          />
+          <section
+            className={`card player-detail-summary player-detail-summary--${pestanaEdicion} mt-4 shadow-sm`}
+          >
+            <div className="card-body p-3">
+              <nav
+                aria-label="Secciones de edición del jugador"
+                className="player-detail-tabs"
+                role="tablist"
+              >
+                {(
+                  [
+                    ['datos', 'Datos'],
+                    ['historial', 'Historial'],
+                  ] as const
+                ).map(([pestana, etiqueta]) => (
+                  <button
+                    aria-selected={pestanaEdicion === pestana}
+                    className={`player-detail-tab ${
+                      pestanaEdicion === pestana ? 'active' : ''
+                    }`}
+                    key={pestana}
+                    role="tab"
+                    type="button"
+                    onClick={() => setPestanaEdicion(pestana)}
+                  >
+                    {etiqueta}
+                  </button>
+                ))}
+              </nav>
+
+              {pestanaEdicion === 'datos' && (
+                <PlayerForm
+                  jugadorInicial={jugadorInicial}
+                  modo="editar"
+                  sinTarjeta
+                  onCancelar={() => navigate(`/jugadores/${jugadorId}`)}
+                  onGuardarJugador={guardarCambios}
+                />
+              )}
+
+              {pestanaEdicion === 'historial' && (
+                <section role="tabpanel">
+                  <h2 className="h5 mb-2">Añadir al historial deportivo</h2>
+                  <p className="text-body-secondary small mb-4">
+                    Registra una nueva etapa del jugador por equipo y temporada, con
+                    goles y partidos cuando se conozcan. Podrás consultar el historial
+                    completo desde la ficha del jugador.
+                  </p>
+                  <TeamHistoryForm onCrearHistorial={añadirHistorialEquipo} />
+                </section>
+              )}
+            </div>
+          </section>
 
           <section className="card border-danger-subtle mt-4">
             <div className="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">

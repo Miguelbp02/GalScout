@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import logoAppOjeo from '../assets/logoAppOjeo.png'
+import UsersIcon from './UsersIcon'
+import PlusIcon from './PlusIcon'
+import ScalesIcon from './ScalesIcon'
+import BinocularsIcon from './BinocularsIcon'
 
 interface AppHeaderProps {
   email?: string
@@ -38,7 +42,7 @@ function AppHeader({
       className={`app-header ${mostrarNavegacion ? 'app-header--with-nav' : ''} ${className}`}
     >
       <div className="d-flex align-items-start justify-content-between gap-3">
-        <div className="app-brand">
+        <Link className="app-brand" to="/">
           <div className="app-logo-crop app-logo-crop-header">
             <img src={logoAppOjeo} alt="Logo de Ojeo Galicia" />
           </div>
@@ -48,7 +52,7 @@ function AppHeader({
               <span>Scout</span>
             </h1>
           </div>
-        </div>
+        </Link>
 
         {acciones ?? accionesDeSesion}
       </div>
@@ -60,25 +64,29 @@ function AppHeader({
             end
             to="/"
           >
-            Jugadores
+            <UsersIcon />
+            <span>Jugadores</span>
           </NavLink>
           <NavLink
             className={({ isActive }) => `app-nav-link ${isActive ? 'active' : ''}`}
             to="/jugadores/nuevo"
           >
-            Añadir jugador
+            <PlusIcon />
+            <span>Añadir jugador</span>
           </NavLink>
           <NavLink
             className={({ isActive }) => `app-nav-link ${isActive ? 'active' : ''}`}
             to="/comparar"
           >
-            Comparar
+            <ScalesIcon />
+            <span>Comparar</span>
           </NavLink>
           <NavLink
             className={({ isActive }) => `app-nav-link ${isActive ? 'active' : ''}`}
             to="/ojeo-partido"
           >
-            Ojear partido
+            <BinocularsIcon />
+            <span>Ojear partido</span>
           </NavLink>
           {herramientas}
         </nav>

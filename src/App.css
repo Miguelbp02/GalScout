@@ -1901,6 +1901,37 @@ h1 {
     padding: 24px 16px;
   }
 
+  .app-nav {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 0.35rem;
+  }
+
+  .app-nav-link {
+    flex: 0 0 auto;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+  }
+
+  .app-nav-link svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .app-nav-link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .player-dominant-foot-value {
     justify-content: center;
   }
@@ -2252,6 +2283,10 @@ h1 {
   gap: 12px;
 }
 
+.match-player-grid--selector {
+  grid-template-columns: 1fr 1fr;
+}
+
 .match-player-group {
   display: flex;
   flex-wrap: wrap;
@@ -2276,6 +2311,10 @@ h1 {
   position: relative;
   display: flex;
   justify-content: center;
+}
+
+.match-sustitucion--movil {
+  display: none;
 }
 
 .match-sustitucion-trigger {
@@ -2351,6 +2390,10 @@ h1 {
   filter: brightness(1.3);
 }
 
+.match-pitch-field-area {
+  position: relative;
+}
+
 .match-pitch-field {
   width: 100%;
   aspect-ratio: 105 / 68;
@@ -2365,6 +2408,9 @@ h1 {
     linear-gradient(160deg, #1e8a4f 0%, #156b3d 55%, #0f4a2b 100%);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 20px 45px rgba(0, 0, 0, 0.3);
   cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .match-pitch-field--inactivo {
@@ -2378,6 +2424,10 @@ h1 {
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+
+.match-pitch-selector {
+  display: none;
 }
 
 .match-notebook {
@@ -2887,12 +2937,70 @@ h1 {
 @media (max-width: 900px) {
   .match-main-area {
     grid-template-columns: 1fr;
-    overflow-y: auto;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    height: 100%;
+    overflow: hidden;
+    transition: grid-template-rows 0.25s ease;
+  }
+
+  .match-main-area--selector-abierta {
+    grid-template-rows: minmax(0, 4fr) minmax(64px, 1fr);
   }
 
   .match-pitch-panel {
     border-right: none;
     border-bottom: 1px solid var(--app-border);
+    overflow: hidden;
+  }
+
+  .match-sustitucion--movil {
+    display: flex;
+  }
+
+  .match-pitch-panel > .match-tag-grid,
+  .match-pitch-panel > .match-tag-portero,
+  .match-pitch-panel > .match-player-grid {
+    display: none;
+  }
+
+  .match-pitch-field-area {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .match-pitch-field {
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+  }
+
+  .match-pitch-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 5;
+    max-height: 78%;
+    overflow-y: auto;
+    padding: 12px;
+    border-radius: 0 0 16px 16px;
+    background-color: var(--app-surface-raised);
+    box-shadow: var(--app-shadow-md);
+    transform: translateY(-100%);
+    transition: transform 0.25s ease;
+    pointer-events: none;
+  }
+
+  .match-pitch-selector--abierta {
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .match-notebook {
+    height: 100%;
   }
 }
 

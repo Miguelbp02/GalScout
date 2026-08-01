@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppFooter from '../components/AppFooter'
 import AppHeader from '../components/AppHeader'
@@ -10,6 +11,7 @@ import { useMatchSession } from '../components/MatchSessionContext'
 function MatchScoutingPage() {
   const navigate = useNavigate()
   const { sesion, cerrarSesion } = useMatchSession()
+  const [selectorAbierto, setSelectorAbierto] = useState(false)
 
   if (!sesion) {
     return (
@@ -36,8 +38,12 @@ function MatchScoutingPage() {
   return (
     <main className="match-fullscreen">
       <MatchTimerBar onCerrar={cerrarYVolver} onMinimizar={() => navigate('/')} />
-      <div className="match-main-area">
-        <MatchPitchCapture />
+      <div
+        className={`match-main-area ${
+          selectorAbierto ? 'match-main-area--selector-abierta' : ''
+        }`}
+      >
+        <MatchPitchCapture onSelectorAbiertoChange={setSelectorAbierto} />
         <MatchNotebook />
       </div>
     </main>

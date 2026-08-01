@@ -149,7 +149,8 @@ function MatchNotebook() {
 
   function mencionarAccion(minuto: number, etiquetaNombre: string) {
     editarEnCursor((texto, inicio, fin) => {
-      const referencia = `**${minuto}' ${etiquetaNombre}** — `
+      const saltoDeLinea = inicio > 0 && texto[inicio - 1] !== '\n' ? '\n' : ''
+      const referencia = `${saltoDeLinea}**${minuto}' ${etiquetaNombre}** — `
 
       return {
         texto: texto.slice(0, inicio) + referencia + texto.slice(fin),

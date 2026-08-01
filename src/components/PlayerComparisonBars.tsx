@@ -23,17 +23,6 @@ function formatearMedia(media: number) {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(media)
 }
 
-function IconoModoComparacion() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      <line x1="4" x2="20" y1="7" y2="7" />
-      <circle cx="9" cy="7" r="2" />
-      <line x1="4" x2="20" y1="17" y2="17" />
-      <circle cx="15" cy="17" r="2" />
-    </svg>
-  )
-}
-
 function PlayerComparisonBars({
   nombreA,
   nombreB,
@@ -76,26 +65,30 @@ function PlayerComparisonBars({
 
   return (
     <div className="mt-4">
-      <div className="comparison-bars-toolbar">
-        <button
-          aria-label={etiquetaAccion}
-          aria-pressed={modoRelativo}
-          className="comparison-mode-toggle"
-          title={etiquetaAccion}
-          type="button"
-          onClick={() => setModoRelativo((actual) => !actual)}
-        >
-          <IconoModoComparacion />
-        </button>
-      </div>
-
-      <div className="comparison-bars-header" aria-hidden="true">
+      <div className="comparison-bars-header">
         <span className="comparison-bars-header-name comparison-bars-header-name--a">
           {nombreA}
         </span>
         <span className="comparison-bars-header-name comparison-bars-header-name--b">
           {nombreB}
         </span>
+        <div className="comparison-bars-toolbar">
+          <button
+            aria-label={etiquetaAccion}
+            aria-pressed={modoRelativo}
+            className="comparison-mode-toggle"
+            title={etiquetaAccion}
+            type="button"
+            onClick={() => setModoRelativo((actual) => !actual)}
+          >
+            <span aria-hidden="true" className="comparison-mode-toggle-track">
+              <span className="comparison-mode-toggle-thumb" />
+            </span>
+            <span className="comparison-mode-toggle-text">
+              {modoRelativo ? 'Relativa' : 'Absoluta'}
+            </span>
+          </button>
+        </div>
       </div>
 
       <div className="d-grid gap-4">

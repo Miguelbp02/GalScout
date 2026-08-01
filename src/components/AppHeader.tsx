@@ -5,6 +5,7 @@ import UsersIcon from './UsersIcon'
 import PlusIcon from './PlusIcon'
 import ScalesIcon from './ScalesIcon'
 import BinocularsIcon from './BinocularsIcon'
+import ThemeToggle from './ThemeToggle'
 
 interface AppHeaderProps {
   email?: string
@@ -89,6 +90,7 @@ function AppHeader({
             <span>Ojear partido</span>
           </NavLink>
           {herramientas}
+          <ThemeToggle />
         </nav>
       )}
     </header>

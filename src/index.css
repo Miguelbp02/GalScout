@@ -1,4 +1,5 @@
-:root {
+:root,
+[data-bs-theme='dark'] {
   --app-background: #111315;
   --app-surface: #181c20;
   --app-surface-raised: #20252b;
@@ -8,6 +9,34 @@
   --app-accent: #61a96b;
   --app-action: #4d83b5;
 
+  --app-card-gradient: linear-gradient(145deg, #252c32 0%, #1d2328 100%);
+  --app-card-border: rgba(105, 126, 145, 0.62);
+
+  --app-overlay-soft: rgba(255, 255, 255, 0.05);
+  --app-overlay-medium: rgba(255, 255, 255, 0.08);
+  --app-overlay-hairline: rgba(255, 255, 255, 0.16);
+  --app-scrim: rgba(17, 19, 21, 0.35);
+  --app-scrim-strong: rgba(17, 19, 21, 0.7);
+
+  --app-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.26);
+  --app-shadow-md: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --app-shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.55);
+
+  --app-info-bg: rgba(77, 131, 181, 0.16);
+  --app-info-border: rgba(77, 131, 181, 0.7);
+  --app-info-text: #c9e5fb;
+
+  --app-success-bg: rgba(97, 169, 107, 0.14);
+  --app-success-border: rgba(97, 169, 107, 0.55);
+  --app-success-text: #bff2d1;
+
+  --app-danger-bg: rgba(240, 115, 111, 0.12);
+  --app-danger-border: rgba(207, 75, 84, 0.55);
+  --app-danger-text: #ef7777;
+  --app-danger-text-soft: #e88a90;
+
+  --app-backdrop-veil: rgba(10, 13, 15, 0.86);
+
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--app-text);
   background-color: var(--app-background);
@@ -15,6 +44,45 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+[data-bs-theme='light'] {
+  --app-background: #cbd7e2;
+  --app-surface: #d8e1e9;
+  --app-surface-raised: #b8cbe0;
+  --app-border: #8ea2b5;
+  --app-text: #16202a;
+  --app-muted: #5b6874;
+  --app-accent: #2e7558;
+  --app-action: #23577d;
+
+  --app-card-gradient: #b8cbe0;
+  --app-card-border: rgba(104, 128, 150, 0.66);
+
+  --app-overlay-soft: rgba(15, 23, 32, 0.04);
+  --app-overlay-medium: rgba(15, 23, 32, 0.07);
+  --app-overlay-hairline: rgba(15, 23, 32, 0.12);
+  --app-scrim: rgba(216, 225, 233, 0.58);
+  --app-scrim-strong: rgba(203, 215, 226, 0.88);
+
+  --app-shadow-sm: 0 2px 4px rgba(24, 39, 55, 0.1);
+  --app-shadow-md: 0 10px 24px rgba(24, 39, 55, 0.14);
+  --app-shadow-lg: 0 14px 36px rgba(24, 39, 55, 0.18);
+
+  --app-info-bg: rgba(47, 102, 144, 0.12);
+  --app-info-border: rgba(47, 102, 144, 0.55);
+  --app-info-text: #1d4f75;
+
+  --app-success-bg: rgba(47, 122, 61, 0.12);
+  --app-success-border: rgba(47, 122, 61, 0.5);
+  --app-success-text: #1f5c2c;
+
+  --app-danger-bg: rgba(192, 57, 66, 0.1);
+  --app-danger-border: rgba(192, 57, 66, 0.45);
+  --app-danger-text: #b3323b;
+  --app-danger-text-soft: #96292f;
+
+  --app-backdrop-veil: rgba(203, 215, 226, 0.62);
 }
 
 * {
@@ -27,7 +95,7 @@ body {
   margin: 0;
   background-color: var(--app-background);
   background-image:
-    linear-gradient(rgba(10, 13, 15, 0.86), rgba(10, 13, 15, 0.86)),
+    linear-gradient(var(--app-backdrop-veil), var(--app-backdrop-veil)),
     url('./assets/sarriena-2.webp');
   background-position: center;
   background-attachment: fixed;
@@ -38,8 +106,30 @@ button {
   cursor: pointer;
 }
 
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease,
+    fill 0.35s ease,
+    stroke 0.35s ease,
+    box-shadow 0.35s ease !important;
+}
+
 @media (max-width: 1120px) {
   body {
     background-image: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: none !important;
   }
 }

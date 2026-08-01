@@ -10,13 +10,18 @@ import type {
 } from '../types/jugador'
 import type { Posicion } from '../types/posicion'
 import { limitesFiltrosJugadores } from '../types/filtrosJugador'
+import type { NuevoHistorialEquipo } from '../types/historialEquipo'
 
 interface PlayerFormProps {
   modo?: 'crear' | 'editar'
   jugadorInicial?: NuevoJugador
   onCancelar?: () => void
-  onGuardarJugador: (jugador: NuevoJugador) => Promise<void>
+  onGuardarJugador: (
+    jugador: NuevoJugador,
+    historialPendiente?: NuevoHistorialEquipo[],
+  ) => Promise<void>
   sinTarjeta?: boolean
+  historialPendiente?: NuevoHistorialEquipo[]
 }
 
 const datosJugadorIniciales: NuevoJugador = {
@@ -59,6 +64,7 @@ function PlayerForm({
   onCancelar,
   onGuardarJugador,
   sinTarjeta = false,
+  historialPendiente = [],
 }: PlayerFormProps) {
   const [jugador, setJugador] = useState<NuevoJugador>(jugadorInicial)
   const [edadTexto, setEdadTexto] = useState(String(jugadorInicial.edad))
@@ -188,7 +194,7 @@ function PlayerForm({
     setGuardando(true)
 
     try {
-      await onGuardarJugador({ ...jugador, edad, alturaCm })
+      await onGuardarJugador({ ...jugador, edad, alturaCm }, historialPendiente)
 
       if (modo === 'crear') {
         setJugador(datosJugadorIniciales)

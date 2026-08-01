@@ -4,6 +4,7 @@ import AppFooter from '../components/AppFooter'
 import AppHeader from '../components/AppHeader'
 import PlayerComparisonBars from '../components/PlayerComparisonBars'
 import PlayerComparisonRadar from '../components/PlayerComparisonRadar'
+import PlayerSelect from '../components/PlayerSelect'
 import PositionFieldSelector from '../components/PositionFieldSelector'
 import { obtenerValoracionesMediasJugador } from '../services/playerRatingsService'
 import { obtenerJugadores } from '../services/playerService'
@@ -138,38 +139,28 @@ function ComparePlayersPage() {
               <label className="form-label" htmlFor="comparar-jugador-a">
                 Jugador 1
               </label>
-              <select
-                className="form-select"
+              <PlayerSelect
                 id="comparar-jugador-a"
-                value={idJugadorA}
-                onChange={(evento) => setIdJugadorA(evento.target.value)}
-              >
-                <option value="">Selecciona un jugador</option>
-                {opcionesA.map((jugador) => (
-                  <option key={jugador.id} value={jugador.id}>
-                    {jugador.nombre}
-                  </option>
-                ))}
-              </select>
+                jugadores={opcionesA}
+                posiciones={posiciones}
+                textoVacio="Selecciona un jugador"
+                valor={idJugadorA}
+                onCambiar={setIdJugadorA}
+              />
             </div>
 
             <div className="col-12 col-md-6">
               <label className="form-label" htmlFor="comparar-jugador-b">
                 Jugador 2
               </label>
-              <select
-                className="form-select"
+              <PlayerSelect
                 id="comparar-jugador-b"
-                value={idJugadorB}
-                onChange={(evento) => setIdJugadorB(evento.target.value)}
-              >
-                <option value="">Selecciona un jugador</option>
-                {opcionesB.map((jugador) => (
-                  <option key={jugador.id} value={jugador.id}>
-                    {jugador.nombre}
-                  </option>
-                ))}
-              </select>
+                jugadores={opcionesB}
+                posiciones={posiciones}
+                textoVacio="Selecciona un jugador"
+                valor={idJugadorB}
+                onCambiar={setIdJugadorB}
+              />
             </div>
           </div>
         )}

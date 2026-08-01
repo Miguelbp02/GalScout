@@ -6,11 +6,17 @@ import { useToast } from './ToastContext'
 
 interface TeamHistoryFormProps {
   onCrearHistorial: (historial: NuevoHistorialEquipo) => Promise<void>
+  textoBoton?: string
+  mensajeExito?: string
 }
 
 const temporadasRecientes = obtenerTemporadasRecientes()
 
-function TeamHistoryForm({ onCrearHistorial }: TeamHistoryFormProps) {
+function TeamHistoryForm({
+  onCrearHistorial,
+  textoBoton = 'Añadir al historial',
+  mensajeExito = 'Etapa añadida al historial',
+}: TeamHistoryFormProps) {
   const idListaEquipos = useId()
   const [nombresEquipos, setNombresEquipos] = useState<string[]>([])
   const [nombreEquipo, setNombreEquipo] = useState('')
@@ -53,7 +59,7 @@ function TeamHistoryForm({ onCrearHistorial }: TeamHistoryFormProps) {
       setGoles('')
       setPartidos('')
       setNotas('')
-      mostrarToast('Etapa añadida al historial')
+      mostrarToast(mensajeExito)
     } catch {
       setError('No se ha podido guardar la etapa en el historial.')
     } finally {
@@ -162,7 +168,7 @@ function TeamHistoryForm({ onCrearHistorial }: TeamHistoryFormProps) {
       )}
 
       <button className="btn btn-primary mt-3" disabled={guardando} type="submit">
-        {guardando ? 'Guardando…' : 'Añadir al historial'}
+        {guardando ? 'Guardando…' : textoBoton}
       </button>
     </form>
   )

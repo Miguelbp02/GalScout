@@ -31,6 +31,7 @@
   background: var(--app-overlay-soft);
   color: var(--app-muted);
   cursor: pointer;
+  touch-action: manipulation;
   backdrop-filter: none;
   transition:
     background-color 0.13s ease,

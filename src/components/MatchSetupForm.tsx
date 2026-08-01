@@ -3,6 +3,7 @@ import { obtenerJugadores } from '../services/playerService'
 import { obtenerPosiciones } from '../services/positionService'
 import { obtenerEquipos } from '../services/teamService'
 import { useMatchSession } from './MatchSessionContext'
+import PlayerSelect from './PlayerSelect'
 import type { PerfilScouting } from '../types/criterio'
 import type { Jugador } from '../types/jugador'
 import type { EquipoSesion, JugadorSeguido, LadoCampo } from '../types/matchSession'
@@ -141,24 +142,19 @@ function MatchSetupForm() {
               <label className="form-label" htmlFor="buscar-jugador-partido">
                 Jugadores a seguir ({seleccionados.length}/{MAXIMO_JUGADORES})
               </label>
-              <select
-                className="form-select"
+              <PlayerSelect
                 disabled={seleccionados.length >= MAXIMO_JUGADORES}
                 id="buscar-jugador-partido"
-                value=""
-                onChange={(evento) => añadirJugadorPorId(evento.target.value)}
-              >
-                <option value="">
-                  {seleccionados.length >= MAXIMO_JUGADORES
+                jugadores={opcionesDisponibles}
+                posiciones={posiciones}
+                textoVacio={
+                  seleccionados.length >= MAXIMO_JUGADORES
                     ? 'Máximo alcanzado'
-                    : 'Selecciona un jugador'}
-                </option>
-                {opcionesDisponibles.map((jugador) => (
-                  <option key={jugador.id} value={jugador.id}>
-                    {jugador.nombre}
-                  </option>
-                ))}
-              </select>
+                    : 'Selecciona un jugador'
+                }
+                valor=""
+                onCambiar={añadirJugadorPorId}
+              />
 
               {seleccionados.length > 0 && (
                 <div className="d-grid gap-2 mt-3">

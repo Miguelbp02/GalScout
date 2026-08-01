@@ -1,5 +1,7 @@
 import type { EstadoJugador, PiernaDominante } from './jugador'
 
+export type OrdenJugadores = '' | 'edad-asc' | 'edad-desc' | 'altura-asc' | 'altura-desc'
+
 export interface FiltrosJugadores {
   nombre: string
   edadMinima: number
@@ -9,6 +11,7 @@ export interface FiltrosJugadores {
   piernaDominante: '' | PiernaDominante
   estado: '' | EstadoJugador
   posicionNatural: string
+  orden: OrdenJugadores
 }
 
 export const limitesFiltrosJugadores = {
@@ -27,4 +30,5 @@ export const filtrosJugadoresIniciales: FiltrosJugadores = {
   piernaDominante: '',
   estado: '',
   posicionNatural: '',
+  orden: '',
 }

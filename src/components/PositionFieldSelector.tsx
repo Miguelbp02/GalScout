@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { Posicion } from '../types/posicion'
 import './PositionFieldSelector.css'
 
@@ -131,9 +131,20 @@ function PositionFieldSelector({
   const esResumen = modo === 'resumen'
   const [codigoInfo, setCodigoInfo] = useState<string | null>(null)
   const idBase = useId().replace(/:/g, '')
+  const temporizadorPulsacion = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pulsacionLarga = useRef(false)
+  const ultimaInteraccionTactil = useRef(0)
   const posicionesPorCodigo = new Map(
     posiciones.map((posicion) => [posicion.codigo, posicion]),
   )
+
+  useEffect(() => {
+    return () => {
+      if (temporizadorPulsacion.current) {
+        clearTimeout(temporizadorPulsacion.current)
+      }
+    }
+  }, [])
 
   function estadoPosicion(posicion: Posicion): TipoPosicion {
     if (posicionesNaturalesIds.includes(posicion.id)) return 'natural'
@@ -170,6 +181,30 @@ function PositionFieldSelector({
       estado === null ? 'apta' : estado === 'apta' ? 'natural' : null
 
     onCambiarEstadoPosicion(posicion.id, siguienteEstado)
+  }
+
+  function iniciarPulsacionLarga(
+    evento: React.PointerEvent<HTMLButtonElement>,
+    posicion: Posicion,
+    codigo: string,
+  ) {
+    if (evento.pointerType !== 'touch') return
+
+    ultimaInteraccionTactil.current = evento.timeStamp
+    pulsacionLarga.current = false
+    temporizadorPulsacion.current = setTimeout(() => {
+      pulsacionLarga.current = true
+      onCambiarEstadoPosicion(posicion.id, 'natural')
+      setCodigoInfo(codigo)
+      navigator.vibrate?.(15)
+    }, 500)
+  }
+
+  function finalizarPulsacionLarga() {
+    if (temporizadorPulsacion.current) {
+      clearTimeout(temporizadorPulsacion.current)
+      temporizadorPulsacion.current = null
+    }
   }
 
   const zonaInfo = zonasCampo.find((zona) => zona.codigo === codigoInfo)
@@ -264,11 +299,21 @@ function PositionFieldSelector({
                 title={posicion.nombre}
                 type="button"
                 onClick={() => {
+                  if (pulsacionLarga.current) {
+                    pulsacionLarga.current = false
+                    return
+                  }
                   ciclarPosicion(posicion)
                   setCodigoInfo(zona.codigo)
                 }}
+                onPointerDown={(evento) =>
+                  iniciarPulsacionLarga(evento, posicion, zona.codigo)
+                }
+                onPointerUp={finalizarPulsacionLarga}
+                onPointerCancel={finalizarPulsacionLarga}
                 onContextMenu={(evento) => {
                   evento.preventDefault()
+                  if (evento.timeStamp - ultimaInteraccionTactil.current < 1000) return
                   onCambiarEstadoPosicion(posicion.id, null)
                   setCodigoInfo(zona.codigo)
                 }}

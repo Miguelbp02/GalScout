@@ -9,6 +9,7 @@ import PlayerFilters from './components/PlayerFilters'
 import PlayerForm from './components/PlayerForm'
 import PlayerList from './components/PlayerList'
 import PlayerListSkeleton from './components/PlayerListSkeleton'
+import TeamHistoryForm from './components/TeamHistoryForm'
 import { supabase } from './lib/supabase'
 import PlayerDetailPage from './pages/PlayerDetailPage'
 import EditPlayerPage from './pages/EditPlayerPage'
@@ -16,12 +17,16 @@ import ComparePlayersPage from './pages/ComparePlayersPage'
 import MatchScoutingPage from './pages/MatchScoutingPage'
 import FloatingMatchPill from './components/FloatingMatchPill'
 import { crearJugador, obtenerJugadores } from './services/playerService'
+import { crearHistorialEquipo } from './services/teamHistoryService'
 import type { Jugador, NuevoJugador } from './types/jugador'
+import type { NuevoHistorialEquipo } from './types/historialEquipo'
 import {
   filtrosJugadoresIniciales,
   limitesFiltrosJugadores,
   type FiltrosJugadores,
 } from './types/filtrosJugador'
+
+type PestanaNuevoJugador = 'datos' | 'historial'
 
 function App() {
   const navigate = useNavigate()
@@ -34,6 +39,8 @@ function App() {
     filtrosJugadoresIniciales,
   )
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
+  const [pestanaNuevoJugador, setPestanaNuevoJugador] = useState<PestanaNuevoJugador>('datos')
+  const [historialNuevoJugador, setHistorialNuevoJugador] = useState<NuevoHistorialEquipo[]>([])
 
   useEffect(() => {
     async function cargarSesion() {
@@ -79,10 +86,30 @@ function App() {
     void cargarJugadores()
   }, [sesion])
 
-  async function añadirJugador(nuevoJugador: NuevoJugador) {
+  async function añadirJugador(
+    nuevoJugador: NuevoJugador,
+    historialPendiente: NuevoHistorialEquipo[] = [],
+  ) {
     const jugadorCreado = await crearJugador(nuevoJugador)
+
+    await Promise.all(
+      historialPendiente.map((historial) => crearHistorialEquipo(jugadorCreado.id, historial)),
+    )
+
     setJugadores((jugadoresActuales) => [jugadorCreado, ...jugadoresActuales])
+    setHistorialNuevoJugador([])
+    setPestanaNuevoJugador('datos')
     navigate('/')
+  }
+
+  async function añadirHistorialNuevoJugador(historial: NuevoHistorialEquipo) {
+    setHistorialNuevoJugador((historialActual) => [...historialActual, historial])
+  }
+
+  function eliminarHistorialNuevoJugador(indice: number) {
+    setHistorialNuevoJugador((historialActual) =>
+      historialActual.filter((_, indiceActual) => indiceActual !== indice),
+    )
   }
 
   async function cerrarSesion() {
@@ -123,6 +150,22 @@ function App() {
         posicionesNaturales.includes(filtrosJugadores.posicionNatural))
     )
   })
+
+  if (filtrosJugadores.orden === 'edad-asc') {
+    jugadoresFiltrados.sort((jugadorA, jugadorB) => jugadorA.edad - jugadorB.edad)
+  }
+
+  if (filtrosJugadores.orden === 'edad-desc') {
+    jugadoresFiltrados.sort((jugadorA, jugadorB) => jugadorB.edad - jugadorA.edad)
+  }
+
+  if (filtrosJugadores.orden === 'altura-asc') {
+    jugadoresFiltrados.sort((jugadorA, jugadorB) => jugadorA.alturaCm - jugadorB.alturaCm)
+  }
+
+  if (filtrosJugadores.orden === 'altura-desc') {
+    jugadoresFiltrados.sort((jugadorA, jugadorB) => jugadorB.alturaCm - jugadorA.alturaCm)
+  }
 
   if (sesionCargando) {
     return (
@@ -181,7 +224,92 @@ function App() {
         email={sesion.user.email}
         onCerrarSesion={() => void cerrarSesion()}
       />
-      <PlayerForm onGuardarJugador={añadirJugador} />
+      <div className="mt-4">
+        <h2 className="h3 mb-1">Añadir jugador</h2>
+        <p className="text-body-secondary mb-0">
+          Completa los datos y añade etapas al historial si las conoces.
+        </p>
+      </div>
+      <section
+        className={`card player-detail-summary player-detail-summary--${pestanaNuevoJugador} mt-4 shadow-sm`}
+      >
+        <div className="card-body p-3">
+          <nav
+            aria-label="Secciones para añadir un jugador"
+            className="player-detail-tabs"
+            role="tablist"
+          >
+            {(
+              [
+                ['datos', 'Datos'],
+                ['historial', 'Historial'],
+              ] as const
+            ).map(([pestana, etiqueta]) => (
+              <button
+                aria-selected={pestanaNuevoJugador === pestana}
+                className={`player-detail-tab ${
+                  pestanaNuevoJugador === pestana ? 'active' : ''
+                }`}
+                key={pestana}
+                role="tab"
+                type="button"
+                onClick={() => setPestanaNuevoJugador(pestana)}
+              >
+                {etiqueta}
+              </button>
+            ))}
+          </nav>
+
+          {pestanaNuevoJugador === 'datos' && (
+            <PlayerForm
+              historialPendiente={historialNuevoJugador}
+              sinTarjeta
+              onGuardarJugador={añadirJugador}
+            />
+          )}
+
+          {pestanaNuevoJugador === 'historial' && (
+            <section role="tabpanel">
+              <h2 className="h5 mb-2">Añadir al historial deportivo</h2>
+              <p className="text-body-secondary small mb-4">
+                Las etapas se guardarán junto con el jugador al confirmar los datos.
+              </p>
+              <TeamHistoryForm
+                mensajeExito="Etapa añadida pendiente de guardar"
+                textoBoton="Añadir etapa"
+                onCrearHistorial={añadirHistorialNuevoJugador}
+              />
+
+              {historialNuevoJugador.length > 0 && (
+                <div className="d-grid gap-2 mt-4">
+                  {historialNuevoJugador.map((historial, indice) => (
+                    <div
+                      className="general-rating-item d-flex align-items-center justify-content-between gap-3"
+                      key={`${historial.nombreEquipo}-${indice}`}
+                    >
+                      <span>
+                        <strong>{historial.nombreEquipo}</strong>
+                        {historial.temporada && (
+                          <span className="small text-body-secondary ms-3">
+                            {historial.temporada}
+                          </span>
+                        )}
+                      </span>
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        type="button"
+                        onClick={() => eliminarHistorialNuevoJugador(indice)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+      </section>
       <AppFooter />
     </main>
   )

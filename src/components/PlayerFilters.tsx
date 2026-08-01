@@ -4,6 +4,7 @@ import {
   filtrosJugadoresIniciales,
   limitesFiltrosJugadores,
   type FiltrosJugadores,
+  type OrdenJugadores,
 } from '../types/filtrosJugador'
 import type { Posicion } from '../types/posicion'
 import FilterIcon from './FilterIcon'
@@ -97,6 +98,10 @@ function PlayerFilters({
       ...filtros,
       alturaMaxima: Math.max(valor, filtros.alturaMinima),
     })
+  }
+
+  function cambiarOrden(orden: OrdenJugadores) {
+    onCambiarFiltros({ ...filtros, orden })
   }
 
   function estiloRango(minimo: number, maximo: number, valorMinimo: number, valorMaximo: number) {
@@ -209,6 +214,23 @@ function PlayerFilters({
                   onChange={(evento) => cambiarEdadMaxima(Number(evento.target.value))}
                 />
               </div>
+              <div className="filter-sort-controls" aria-label="Ordenar por edad">
+                <span>Ordenar:</span>
+                <button
+                  aria-pressed={filtros.orden === 'edad-asc'}
+                  type="button"
+                  onClick={() => cambiarOrden('edad-asc')}
+                >
+                  Asc.
+                </button>
+                <button
+                  aria-pressed={filtros.orden === 'edad-desc'}
+                  type="button"
+                  onClick={() => cambiarOrden('edad-desc')}
+                >
+                  Desc.
+                </button>
+              </div>
             </div>
 
             <div className="col-12 col-md-6">
@@ -245,6 +267,23 @@ function PlayerFilters({
                   value={filtros.alturaMaxima}
                   onChange={(evento) => cambiarAlturaMaxima(Number(evento.target.value))}
                 />
+              </div>
+              <div className="filter-sort-controls" aria-label="Ordenar por altura">
+                <span>Ordenar:</span>
+                <button
+                  aria-pressed={filtros.orden === 'altura-asc'}
+                  type="button"
+                  onClick={() => cambiarOrden('altura-asc')}
+                >
+                  Asc.
+                </button>
+                <button
+                  aria-pressed={filtros.orden === 'altura-desc'}
+                  type="button"
+                  onClick={() => cambiarOrden('altura-desc')}
+                >
+                  Desc.
+                </button>
               </div>
             </div>
 

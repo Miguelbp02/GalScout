@@ -2365,6 +2365,33 @@ h1 {
   gap: 2px;
 }
 
+.match-notebook-tab-container {
+  position: relative;
+  display: inline-flex;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.match-notebook-tab-container .match-notebook-tab {
+  padding-right: 32px;
+  cursor: grab;
+}
+
+.match-notebook-tab-container .match-notebook-tab:active {
+  cursor: grabbing;
+}
+
+.match-notebook-tab-container--arrastrando {
+  opacity: 0.4;
+}
+
+.match-notebook-tab-container--destino {
+  transform: translateY(-2px);
+}
+
+.match-notebook-tab-container--destino .match-notebook-tab {
+  border-color: var(--app-action);
+}
+
 .match-notebook-tab {
   display: inline-flex;
   align-items: center;
@@ -2384,6 +2411,55 @@ h1 {
   color: var(--app-text);
 }
 
+.match-notebook-tab--añadir {
+  width: 38px;
+  justify-content: center;
+  padding-inline: 12px;
+  overflow: hidden;
+  font-size: 1.05rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: width 0.18s ease;
+}
+
+.match-notebook-tab--añadir-abierta {
+  width: 160px;
+  justify-content: flex-start;
+  font-size: 0.8rem;
+}
+
+.match-notebook-tab-close {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  font-size: 1rem;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.match-notebook-tab-close:hover,
+.match-notebook-tab-close:focus-visible {
+  background: rgba(240, 115, 111, 0.12);
+  color: var(--app-danger-text);
+  outline: none;
+}
+
+.match-notebook-tab-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 .match-notebook-tab-dot {
   display: inline-block;
   width: 7px;
@@ -2400,6 +2476,17 @@ h1 {
   border: 1px solid var(--app-border);
   border-radius: 0 8px 8px 8px;
   background-color: var(--app-surface-raised);
+}
+
+.match-add-player-form {
+  display: grid;
+  gap: 16px;
+}
+
+.match-add-player-teams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .match-editor-toolbar {
@@ -2601,6 +2688,18 @@ h1 {
   font-size: 0.78rem;
 }
 
+@media (min-width: 901px) {
+  .match-action-log-lista {
+    gap: 6px;
+  }
+
+  .match-action-log-item {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+}
+
 .floating-match-pill {
   position: fixed;
   right: 20px;
@@ -2617,6 +2716,8 @@ h1 {
   font-size: 0.8rem;
   font-weight: 600;
   box-shadow: var(--app-shadow-md);
+  transform: scale(1.3);
+  transform-origin: bottom right;
 }
 
 .floating-match-pill-dot {

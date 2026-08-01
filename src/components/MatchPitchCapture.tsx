@@ -4,9 +4,12 @@ import { useMatchSession } from './MatchSessionContext'
 import type { EtiquetaAccion } from '../types/accionObservacion'
 import type { EquipoSesion } from '../types/matchSession'
 
+const ANCHO_CAMPO = 105
+const ALTO_CAMPO = 68
+
 function MatchPitchCapture() {
   const { sesion, agregarAccion, cambiarLadoEquipoA } = useMatchSession()
-  const campoRef = useRef<HTMLDivElement>(null)
+  const campoSvgRef = useRef<SVGSVGElement>(null)
   const [etiquetasCampo, setEtiquetasCampo] = useState<EtiquetaAccion[]>([])
   const [etiquetasPortero, setEtiquetasPortero] = useState<EtiquetaAccion[]>([])
   const [toque, setToque] = useState<{ x: number; y: number } | null>(null)
@@ -46,6 +49,7 @@ function MatchPitchCapture() {
 
   if (!sesion) return null
 
+  const unicoJugador = sesion.jugadores.length === 1 ? sesion.jugadores[0] : null
   const capturaActiva =
     (sesion.estado === 'primera_parte' || sesion.estado === 'segunda_parte') &&
     sesion.corriendo
@@ -71,11 +75,17 @@ function MatchPitchCapture() {
   )
 
   function manejarClicCampo(evento: React.MouseEvent<HTMLDivElement>) {
-    if (!capturaActiva || !campoRef.current) return
+    if (!capturaActiva || !campoSvgRef.current) return
 
-    const rect = campoRef.current.getBoundingClientRect()
-    const x = ((evento.clientX - rect.left) / rect.width) * 100
-    const y = ((evento.clientY - rect.top) / rect.height) * 100
+    const matrizCampo = campoSvgRef.current.getScreenCTM()
+    if (!matrizCampo) return
+
+    const puntoPantalla = campoSvgRef.current.createSVGPoint()
+    puntoPantalla.x = evento.clientX
+    puntoPantalla.y = evento.clientY
+    const puntoCampo = puntoPantalla.matrixTransform(matrizCampo.inverse())
+    const x = (puntoCampo.x / ANCHO_CAMPO) * 100
+    const y = (puntoCampo.y / ALTO_CAMPO) * 100
 
     setToque({ x: Math.min(100, Math.max(0, x)), y: Math.min(100, Math.max(0, y)) })
     setEtiquetaElegida(null)
@@ -83,16 +93,22 @@ function MatchPitchCapture() {
 
   function elegirEtiqueta(etiqueta: EtiquetaAccion) {
     if (!toque) return
+
+    if (unicoJugador) {
+      registrarAccion(unicoJugador.id, etiqueta)
+      return
+    }
+
     setEtiquetaElegida(etiqueta)
   }
 
-  function elegirJugador(jugadorId: string) {
-    if (!toque || !etiquetaElegida) return
+  function registrarAccion(jugadorId: string, etiqueta: EtiquetaAccion) {
+    if (!toque) return
 
     agregarAccion({
       jugadorId,
-      etiquetaId: etiquetaElegida.id,
-      etiquetaNombre: etiquetaElegida.nombre,
+      etiquetaId: etiqueta.id,
+      etiquetaNombre: etiqueta.nombre,
       esSustitucion: false,
       minuto: minutoActual,
       x: Number(toque.x.toFixed(2)),
@@ -102,6 +118,11 @@ function MatchPitchCapture() {
 
     setToque(null)
     setEtiquetaElegida(null)
+  }
+
+  function elegirJugador(jugadorId: string) {
+    if (!etiquetaElegida) return
+    registrarAccion(jugadorId, etiquetaElegida)
   }
 
   function registrarSustitucion(jugadorId: string, etiqueta: EtiquetaAccion) {
@@ -266,10 +287,13 @@ function MatchPitchCapture() {
 
       <div
         className={`match-pitch-field ${capturaActiva ? '' : 'match-pitch-field--inactivo'}`}
-        ref={campoRef}
         onClick={manejarClicCampo}
       >
-        <svg className="match-pitch-svg" viewBox="0 0 105 68">
+        <svg
+          className="match-pitch-svg"
+          ref={campoSvgRef}
+          viewBox={`0 0 ${ANCHO_CAMPO} ${ALTO_CAMPO}`}
+        >
           <g fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="0.35">
             <rect height="68" width="105" x="0" y="0" />
             <line x1="52.5" x2="52.5" y1="0" y2="68" />

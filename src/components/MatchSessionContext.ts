@@ -18,6 +18,9 @@ export interface ConfiguracionInicialPartido {
 export interface MatchSessionContextValue {
   sesion: SesionPartido | null
   iniciarPartido: (configuracion: ConfiguracionInicialPartido) => void
+  agregarJugador: (jugador: JugadorSeguido) => void
+  eliminarJugador: (jugadorId: string) => void
+  reordenarJugadores: (jugadorId: string, jugadorDestinoId: string) => void
   cambiarLadoEquipoA: () => void
   iniciarCronometro: () => void
   pausarCronometro: () => void

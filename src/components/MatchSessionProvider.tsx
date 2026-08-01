@@ -92,6 +92,75 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const agregarJugador = useCallback((jugador: SesionPartido['jugadores'][number]) => {
+    setSesion((actual) => {
+      if (
+        !actual ||
+        actual.jugadores.length >= 4 ||
+        actual.jugadores.some((item) => item.id === jugador.id)
+      ) {
+        return actual
+      }
+
+      return {
+        ...actual,
+        jugadores: [...actual.jugadores, jugador],
+        informesPorJugador: { ...actual.informesPorJugador, [jugador.id]: '' },
+        puntuacionesPorJugador: { ...actual.puntuacionesPorJugador, [jugador.id]: {} },
+        pestanaActiva: jugador.id,
+      }
+    })
+  }, [])
+
+  const eliminarJugador = useCallback((jugadorId: string) => {
+    setSesion((actual) => {
+      if (!actual) return actual
+
+      const jugadores = actual.jugadores.filter((jugador) => jugador.id !== jugadorId)
+      const informesPorJugador = { ...actual.informesPorJugador }
+      const puntuacionesPorJugador = { ...actual.puntuacionesPorJugador }
+      delete informesPorJugador[jugadorId]
+      delete puntuacionesPorJugador[jugadorId]
+
+      return {
+        ...actual,
+        jugadores,
+        acciones: actual.acciones.filter((accion) => accion.jugadorId !== jugadorId),
+        informesPorJugador,
+        puntuacionesPorJugador,
+        jugadoresGuardados: actual.jugadoresGuardados.filter((id) => id !== jugadorId),
+        pestanaActiva:
+          actual.pestanaActiva === jugadorId
+            ? (jugadores[0]?.id ?? null)
+            : actual.pestanaActiva,
+      }
+    })
+  }, [])
+
+  const reordenarJugadores = useCallback(
+    (jugadorId: string, jugadorDestinoId: string) => {
+      if (jugadorId === jugadorDestinoId) return
+
+      setSesion((actual) => {
+        if (!actual) return actual
+
+        const indiceOrigen = actual.jugadores.findIndex(
+          (jugador) => jugador.id === jugadorId,
+        )
+        const indiceDestino = actual.jugadores.findIndex(
+          (jugador) => jugador.id === jugadorDestinoId,
+        )
+        if (indiceOrigen < 0 || indiceDestino < 0) return actual
+
+        const jugadores = [...actual.jugadores]
+        const [jugadorMovido] = jugadores.splice(indiceOrigen, 1)
+        jugadores.splice(indiceDestino, 0, jugadorMovido)
+        return { ...actual, jugadores }
+      })
+    },
+    [],
+  )
+
   const cambiarLadoEquipoA = useCallback(() => {
     setSesion((actual) =>
       actual
@@ -231,6 +300,9 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
   const valor: MatchSessionContextValue = {
     sesion,
     iniciarPartido,
+    agregarJugador,
+    eliminarJugador,
+    reordenarJugadores,
     cambiarLadoEquipoA,
     iniciarCronometro,
     pausarCronometro,

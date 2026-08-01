@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import CriteriaRatingsInput from './CriteriaRatingsInput'
+import MatchAddPlayerForm from './MatchAddPlayerForm'
 import TrashIcon from './TrashIcon'
 import { useMatchSession } from './MatchSessionContext'
 import { useToast } from './ToastContext'
@@ -19,6 +20,17 @@ interface ResultadoEdicion {
   cursor: number
 }
 
+interface PestanaNuevoJugador {
+  id: string
+  nombre: string
+}
+
+function generarIdPestana() {
+  return typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `pestana-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
 function MatchNotebook() {
   const {
     sesion,
@@ -27,6 +39,8 @@ function MatchNotebook() {
     marcarInformeGuardado,
     cambiarPestanaActiva,
     actualizarPuntuacionJugador,
+    eliminarJugador,
+    reordenarJugadores,
   } = useMatchSession()
   const { mostrarToast } = useToast()
 
@@ -37,6 +51,10 @@ function MatchNotebook() {
   >({})
   const [guardandoJugadorId, setGuardandoJugadorId] = useState<string | null>(null)
   const [errorGuardado, setErrorGuardado] = useState<string | null>(null)
+  const [pestanasNuevas, setPestanasNuevas] = useState<PestanaNuevoJugador[]>([])
+  const [pestanaNuevaActivaId, setPestanaNuevaActivaId] = useState<string | null>(null)
+  const [jugadorArrastradoId, setJugadorArrastradoId] = useState<string | null>(null)
+  const [jugadorDestinoId, setJugadorDestinoId] = useState<string | null>(null)
 
   const jugadorActivo = sesion?.jugadores.find(
     (jugador) => jugador.id === sesion.pestanaActiva,
@@ -55,15 +73,23 @@ function MatchNotebook() {
       .catch(() => {})
   }, [jugadorActivo, criteriosPorPerfil])
 
-  if (!sesion || !jugadorActivo) return null
+  if (!sesion) return null
 
-  const textoInforme = sesion.informesPorJugador[jugadorActivo.id] ?? ''
-  const accionesDelJugador = sesion.acciones.filter(
-    (accion) => accion.jugadorId === jugadorActivo.id,
-  )
-  const yaGuardado = sesion.jugadoresGuardados.includes(jugadorActivo.id)
-  const criteriosActivos = criteriosPorPerfil[jugadorActivo.perfilScouting] ?? []
-  const puntuacionesActivas = sesion.puntuacionesPorJugador[jugadorActivo.id] ?? {}
+  const textoInforme = jugadorActivo
+    ? (sesion.informesPorJugador[jugadorActivo.id] ?? '')
+    : ''
+  const accionesDelJugador = jugadorActivo
+    ? sesion.acciones.filter((accion) => accion.jugadorId === jugadorActivo.id)
+    : []
+  const yaGuardado = jugadorActivo
+    ? sesion.jugadoresGuardados.includes(jugadorActivo.id)
+    : false
+  const criteriosActivos = jugadorActivo
+    ? (criteriosPorPerfil[jugadorActivo.perfilScouting] ?? [])
+    : []
+  const puntuacionesActivas = jugadorActivo
+    ? (sesion.puntuacionesPorJugador[jugadorActivo.id] ?? {})
+    : {}
 
   function editarEnCursor(
     transformar: (texto: string, inicio: number, fin: number) => ResultadoEdicion,
@@ -187,35 +213,187 @@ function MatchNotebook() {
     }
   }
 
+  function cerrarSeguimientoJugador(jugadorId: string, nombre: string) {
+    const confirmado = window.confirm(
+      `¿Seguro que quieres dejar de seguir a ${nombre}? Se perderán las acciones, el informe y las valoraciones no guardadas de este jugador en este partido.`,
+    )
+    if (!confirmado) return
+
+    eliminarJugador(jugadorId)
+    if (sesion!.jugadores.length === 1) {
+      if (pestanasNuevas.length === 0) {
+        abrirPestanaJugador()
+      } else {
+        setPestanaNuevaActivaId(pestanasNuevas[0].id)
+      }
+    }
+  }
+
+  function abrirPestanaJugador() {
+    if (sesion!.jugadores.length + pestanasNuevas.length >= 4) return
+
+    const id = generarIdPestana()
+    setPestanasNuevas((actuales) => [...actuales, { id, nombre: '' }])
+    setPestanaNuevaActivaId(id)
+  }
+
+  function cerrarPestanaJugador(pestanaId: string) {
+    const restantes = pestanasNuevas.filter((pestana) => pestana.id !== pestanaId)
+    setPestanasNuevas(restantes)
+
+    if (pestanaNuevaActivaId === pestanaId) {
+      setPestanaNuevaActivaId(restantes.at(-1)?.id ?? null)
+    }
+  }
+
+  function actualizarNombrePestana(pestanaId: string, nombre: string) {
+    setPestanasNuevas((actuales) =>
+      actuales.map((pestana) =>
+        pestana.id === pestanaId ? { ...pestana, nombre } : pestana,
+      ),
+    )
+  }
+
+  function iniciarArrastre(
+    evento: React.DragEvent<HTMLButtonElement>,
+    jugadorId: string,
+  ) {
+    evento.dataTransfer.effectAllowed = 'move'
+    evento.dataTransfer.setData('text/plain', jugadorId)
+    setJugadorArrastradoId(jugadorId)
+  }
+
+  function soltarJugador(
+    evento: React.DragEvent<HTMLDivElement>,
+    jugadorDestinoId: string,
+  ) {
+    evento.preventDefault()
+    const jugadorOrigenId =
+      evento.dataTransfer.getData('text/plain') || jugadorArrastradoId
+    if (jugadorOrigenId) {
+      reordenarJugadores(jugadorOrigenId, jugadorDestinoId)
+    }
+    setJugadorArrastradoId(null)
+    setJugadorDestinoId(null)
+  }
+
   return (
     <div className="match-notebook">
       <div className="match-notebook-tabs">
         {sesion.jugadores.map((jugador) => (
-          <button
-            className={`match-notebook-tab ${
-              jugador.id === sesion.pestanaActiva ? 'match-notebook-tab--activa' : ''
+          <div
+            className={`match-notebook-tab-container ${
+              jugadorArrastradoId === jugador.id
+                ? 'match-notebook-tab-container--arrastrando'
+                : ''
+            } ${
+              jugadorDestinoId === jugador.id && jugadorArrastradoId !== jugador.id
+                ? 'match-notebook-tab-container--destino'
+                : ''
             }`}
             key={jugador.id}
-            style={
-              jugador.id === sesion.pestanaActiva
-                ? { borderBottomColor: jugador.color }
-                : undefined
-            }
-            type="button"
-            onClick={() => cambiarPestanaActiva(jugador.id)}
+            onDragOver={(evento) => {
+              evento.preventDefault()
+              evento.dataTransfer.dropEffect = 'move'
+              setJugadorDestinoId(jugador.id)
+            }}
+            onDrop={(evento) => soltarJugador(evento, jugador.id)}
           >
-            <i
-              aria-hidden="true"
-              className="match-notebook-tab-dot"
-              style={{ background: jugador.color }}
-            />
-            {jugador.nombre}
-            {sesion.jugadoresGuardados.includes(jugador.id) && ' ✓'}
-          </button>
+            <button
+              className={`match-notebook-tab ${
+                !pestanaNuevaActivaId && jugador.id === sesion.pestanaActiva
+                  ? 'match-notebook-tab--activa'
+                  : ''
+              }`}
+              style={
+                !pestanaNuevaActivaId && jugador.id === sesion.pestanaActiva
+                  ? { borderBottomColor: jugador.color }
+                  : undefined
+              }
+              draggable
+              title="Arrastra para cambiar el orden"
+              type="button"
+              onClick={() => {
+                setPestanaNuevaActivaId(null)
+                cambiarPestanaActiva(jugador.id)
+              }}
+              onDragEnd={() => {
+                setJugadorArrastradoId(null)
+                setJugadorDestinoId(null)
+              }}
+              onDragStart={(evento) => iniciarArrastre(evento, jugador.id)}
+            >
+              <i
+                aria-hidden="true"
+                className="match-notebook-tab-dot"
+                style={{ background: jugador.color }}
+              />
+              {jugador.nombre}
+              {sesion.jugadoresGuardados.includes(jugador.id) && ' ✓'}
+            </button>
+            <button
+              aria-label={`Dejar de seguir a ${jugador.nombre}`}
+              className="match-notebook-tab-close"
+              disabled={guardandoJugadorId === jugador.id}
+              title={`Dejar de seguir a ${jugador.nombre}`}
+              type="button"
+              onClick={() => cerrarSeguimientoJugador(jugador.id, jugador.nombre)}
+            >
+              ×
+            </button>
+          </div>
         ))}
+        {pestanasNuevas.map((pestana) => (
+          <div className="match-notebook-tab-container" key={pestana.id}>
+            <button
+              className={`match-notebook-tab match-notebook-tab--añadir match-notebook-tab--añadir-abierta ${
+                pestanaNuevaActivaId === pestana.id ? 'match-notebook-tab--activa' : ''
+              }`}
+              type="button"
+              onClick={() => setPestanaNuevaActivaId(pestana.id)}
+            >
+              + {pestana.nombre || 'Nuevo jugador'}
+            </button>
+            <button
+              aria-label="Cerrar pestaña de nuevo jugador"
+              className="match-notebook-tab-close"
+              title="Cerrar pestaña"
+              type="button"
+              onClick={() => cerrarPestanaJugador(pestana.id)}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        {sesion.jugadores.length + pestanasNuevas.length < 4 && (
+          <button
+            aria-label="Añadir jugador al seguimiento"
+            className="match-notebook-tab match-notebook-tab--añadir"
+            title="Añadir jugador al seguimiento"
+            type="button"
+            onClick={abrirPestanaJugador}
+          >
+            +
+          </button>
+        )}
       </div>
 
       <div className="match-notebook-panel">
+        {pestanasNuevas.map((pestana) => (
+          <div
+            className={pestanaNuevaActivaId === pestana.id ? '' : 'd-none'}
+            key={pestana.id}
+          >
+            <MatchAddPlayerForm
+              onCerrar={() => cerrarPestanaJugador(pestana.id)}
+              onJugadorSeleccionado={(nombre) =>
+                actualizarNombrePestana(pestana.id, nombre)
+              }
+            />
+          </div>
+        ))}
+        {!pestanaNuevaActivaId && jugadorActivo ? (
+          <>
         {yaGuardado ? (
           <p className="text-body-secondary mb-0">
             Informe de {jugadorActivo.nombre} ya guardado. Puedes seguir editando a otros
@@ -269,7 +447,7 @@ function MatchNotebook() {
               className="form-control match-editor-textarea"
               placeholder="Escribe aquí el informe de este jugador…"
               ref={textareaRef}
-              rows={12}
+              rows={11}
               value={textoInforme}
               onChange={(evento) =>
                 actualizarInforme(jugadorActivo.id, evento.target.value)
@@ -352,6 +530,13 @@ function MatchNotebook() {
               })}
           </div>
         </div>
+          </>
+        ) : null}
+        {!pestanaNuevaActivaId && !jugadorActivo && pestanasNuevas.length === 0 && (
+          <p className="text-body-secondary mb-0">
+            Pulsa + para añadir un jugador al seguimiento.
+          </p>
+        )}
       </div>
     </div>
   )

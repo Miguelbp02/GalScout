@@ -69,13 +69,48 @@ function MatchSetupForm() {
     .filter((jugador) => !idsSeleccionados.has(jugador.id))
     .sort((primero, segundo) => primero.nombre.localeCompare(segundo.nombre, 'es'))
 
+  function normalizarNombreEquipo(nombre: string) {
+    return nombre.trim().toLocaleLowerCase('es-ES')
+  }
+
   function añadirJugadorPorId(jugadorId: string) {
     if (!jugadorId || seleccionados.length >= MAXIMO_JUGADORES) return
 
     const jugador = jugadores.find((item) => item.id === jugadorId)
     if (!jugador) return
 
-    setSeleccionados((actuales) => [...actuales, { jugador, equipo: 'A' }])
+    const equipoRegistrado = jugador.equipoActual?.trim() ?? ''
+    const equipoRegistradoNormalizado = normalizarNombreEquipo(equipoRegistrado)
+    const equipoANormalizado = normalizarNombreEquipo(nombreEquipoA)
+    const equipoBNormalizado = normalizarNombreEquipo(nombreEquipoB)
+    let equipo: EquipoSesion = 'A'
+    let nuevoNombreEquipoA = nombreEquipoA
+    let nuevoNombreEquipoB = nombreEquipoB
+
+    if (equipoRegistradoNormalizado) {
+      if (equipoRegistradoNormalizado === equipoANormalizado) {
+        equipo = 'A'
+      } else if (equipoRegistradoNormalizado === equipoBNormalizado) {
+        equipo = 'B'
+      } else if (!equipoANormalizado) {
+        equipo = 'A'
+        nuevoNombreEquipoA = equipoRegistrado
+      } else if (!equipoBNormalizado) {
+        equipo = 'B'
+        nuevoNombreEquipoB = equipoRegistrado
+      } else {
+        const jugadorDelMismoEquipo = seleccionados.find(
+          (item) =>
+            normalizarNombreEquipo(item.jugador.equipoActual ?? '') ===
+            equipoRegistradoNormalizado,
+        )
+        equipo = jugadorDelMismoEquipo?.equipo ?? 'A'
+      }
+    }
+
+    setNombreEquipoA(nuevoNombreEquipoA)
+    setNombreEquipoB(nuevoNombreEquipoB)
+    setSeleccionados((actuales) => [...actuales, { jugador, equipo }])
   }
 
   function quitarJugador(jugadorId: string) {
@@ -91,6 +126,26 @@ function MatchSetupForm() {
           ? { ...item, equipo: item.equipo === 'A' ? 'B' : 'A' }
           : item,
       ),
+    )
+  }
+
+  function cambiarNombreEquipo(tipo: EquipoSesion, nombre: string) {
+    if (tipo === 'A') {
+      setNombreEquipoA(nombre)
+    } else {
+      setNombreEquipoB(nombre)
+    }
+
+    const nombreNormalizado = normalizarNombreEquipo(nombre)
+    if (!nombreNormalizado) return
+
+    setSeleccionados((actuales) =>
+      actuales.map((item) => {
+        const equipoRegistrado = normalizarNombreEquipo(item.jugador.equipoActual ?? '')
+        if (equipoRegistrado !== nombreNormalizado) return item
+
+        return { ...item, equipo: tipo }
+      }),
     )
   }
 
@@ -200,7 +255,7 @@ function MatchSetupForm() {
                   placeholder="Nombre del equipo A"
                   type="text"
                   value={nombreEquipoA}
-                  onChange={(evento) => setNombreEquipoA(evento.target.value)}
+                  onChange={(evento) => cambiarNombreEquipo('A', evento.target.value)}
                 />
               </div>
               <div className="col-12 col-sm-6">
@@ -214,7 +269,7 @@ function MatchSetupForm() {
                   placeholder="Nombre del equipo B"
                   type="text"
                   value={nombreEquipoB}
-                  onChange={(evento) => setNombreEquipoB(evento.target.value)}
+                  onChange={(evento) => cambiarNombreEquipo('B', evento.target.value)}
                 />
               </div>
               <datalist id={idListaEquipos}>

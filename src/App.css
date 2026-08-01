@@ -554,12 +554,21 @@
 }
 
 .theme-toggle-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.1rem;
   height: 1.1rem;
   border-radius: 50%;
   background: var(--app-muted);
   box-shadow: var(--app-shadow-sm);
+  color: var(--app-surface);
   transition: transform 0.35s ease, background-color 0.35s ease;
+}
+
+.theme-toggle-thumb svg {
+  width: 0.7rem;
+  height: 0.7rem;
 }
 
 .theme-toggle[aria-pressed='true'] .theme-toggle-track {

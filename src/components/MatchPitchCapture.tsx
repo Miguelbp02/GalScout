@@ -293,7 +293,7 @@ function MatchPitchCapture({ onSelectorAbiertoChange }: MatchPitchCaptureProps) 
 
         {sustitucionAbierta && (
           <div className="match-sustitucion-panel">
-            {sesion.jugadores.map((jugador) => (
+            {sesion!.jugadores.map((jugador) => (
               <div className="match-sustitucion-fila" key={jugador.id}>
                 <span style={{ color: jugador.color }}>{jugador.nombre}</span>
                 <span className="d-flex gap-1">

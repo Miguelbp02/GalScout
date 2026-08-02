@@ -4037,6 +4037,215 @@ h1 {
   background: var(--app-overlay-hairline);
 }
 
+/* Exportación del informe de jugador */
+.player-export-tab,
+.player-export-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.player-export-intro,
+.player-export-section-header,
+.player-export-preview-header,
+.player-export-actions,
+.player-export-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.player-export-fixed-badge {
+  flex: 0 0 auto;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 45%, var(--app-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  color: var(--app-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.player-export-section {
+  padding: 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  background: var(--app-surface-raised);
+}
+
+.player-export-section-header {
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.player-export-check-grid,
+.player-export-module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.player-export-check-card,
+.player-export-module-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.player-export-check-card:has(input:checked),
+.player-export-module-card:has(input:checked) {
+  border-color: color-mix(in srgb, var(--app-accent) 55%, var(--app-border));
+  background: color-mix(in srgb, var(--app-accent) 8%, var(--app-surface));
+}
+
+.player-export-check-card input,
+.player-export-module-card input,
+.player-export-record input {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+  accent-color: var(--app-accent);
+}
+
+.player-export-check-card span,
+.player-export-module-card span,
+.player-export-record-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.player-export-check-card small,
+.player-export-module-card small,
+.player-export-record-main small {
+  color: var(--bs-secondary-color);
+  font-size: 0.76rem;
+}
+
+.player-export-map-card {
+  padding: 13px;
+  border: 1px solid var(--app-border);
+  border-radius: 9px;
+  background: var(--app-surface);
+}
+
+.player-export-map-header {
+  align-items: stretch;
+  margin-bottom: 12px;
+}
+
+.player-export-map-header .form-control {
+  max-width: 440px;
+  font-weight: 700;
+}
+
+.player-export-tag-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.player-export-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.player-export-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  font-size: 0.76rem;
+}
+
+.player-export-tag span {
+  min-width: 1.2rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 999px;
+  background: var(--app-overlay-hairline);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.player-export-tag.active.player-export-tag--positiva {
+  border-color: color-mix(in srgb, var(--app-accent) 55%, var(--app-border));
+  background: color-mix(in srgb, var(--app-accent) 14%, transparent);
+  color: var(--app-accent);
+}
+
+.player-export-tag.active.player-export-tag--negativa {
+  border-color: color-mix(in srgb, var(--bs-danger) 55%, var(--app-border));
+  background: color-mix(in srgb, var(--bs-danger) 12%, transparent);
+  color: var(--bs-danger);
+}
+
+.player-export-record-list {
+  display: grid;
+  gap: 7px;
+}
+
+.player-export-record {
+  display: grid;
+  grid-template-columns: auto minmax(130px, 0.7fr) auto minmax(180px, 1.3fr);
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-surface);
+  cursor: pointer;
+}
+
+.player-export-record:has(input:checked) {
+  border-color: color-mix(in srgb, var(--app-accent) 45%, var(--app-border));
+}
+
+.player-export-record-preview {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--bs-secondary-color);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-export-actions {
+  position: sticky;
+  z-index: 4;
+  bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--app-surface-raised) 94%, transparent);
+  box-shadow: var(--app-shadow-md);
+  backdrop-filter: blur(12px);
+}
+
+.player-export-preview-header {
+  align-items: flex-start;
+}
+
+.player-export-preview-frame {
+  width: 100%;
+  min-height: 720px;
+  height: 75vh;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
 @media (max-width: 900px) {
   .match-main-area {
     grid-template-columns: 1fr;
@@ -4141,17 +4350,41 @@ h1 {
   }
 
   .player-detail-indice {
-    min-width: 0;
-    flex-shrink: 1;
-    padding-right: 0.62rem;
-    padding-left: 0.62rem;
-    font-size: 0.82rem;
+    display: none;
   }
 
   .player-detail-indice-nombre {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .player-export-intro,
+  .player-export-section-header,
+  .player-export-preview-header,
+  .player-export-actions,
+  .player-export-map-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .player-export-check-grid,
+  .player-export-module-grid,
+  .player-export-tag-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .player-export-record {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .player-export-record-preview {
+    grid-column: 2 / -1;
+  }
+
+  .player-export-preview-frame {
+    min-height: 520px;
+    height: 68vh;
   }
 
   .match-timer-row {

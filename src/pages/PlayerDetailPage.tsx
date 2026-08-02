@@ -11,6 +11,7 @@ import PlayerDetailSkeleton from '../components/PlayerDetailSkeleton'
 import PlayerObservationForm from '../components/PlayerObservationForm'
 import PlayerObservationList from '../components/PlayerObservationList'
 import PlayerStatsTab from '../components/PlayerStatsTab'
+import PlayerExportTab from '../components/PlayerExportTab'
 import PositionFieldSelector from '../components/PositionFieldSelector'
 import DominantFootIndicator from '../components/DominantFootIndicator'
 import TeamHistoryList from '../components/TeamHistoryList'
@@ -48,7 +49,7 @@ import type {
 } from '../types/valoracionGeneral'
 import type { HistorialEquipoJugador } from '../types/historialEquipo'
 
-type PestanaFicha = 'general' | 'historial' | 'estadisticas'
+type PestanaFicha = 'general' | 'historial' | 'estadisticas' | 'exportar'
 
 function PlayerDetailPage() {
   const { jugadorId } = useParams()
@@ -314,6 +315,7 @@ function PlayerDetailPage() {
                       ['general', 'General'],
                       ['historial', 'Historial'],
                       ['estadisticas', 'Estadísticas'],
+                      ['exportar', 'Exportar'],
                     ] as const
                   ).map(([pestana, etiqueta]) => (
                     <button
@@ -452,6 +454,18 @@ function PlayerDetailPage() {
 
               {pestanaFicha === 'estadisticas' && (
                 <PlayerStatsTab observaciones={observaciones} perfilScouting={perfilScouting} />
+              )}
+
+              {pestanaFicha === 'exportar' && (
+                <PlayerExportTab
+                  jugador={jugador}
+                  observaciones={observaciones}
+                  perfilScouting={perfilScouting}
+                  posiciones={posiciones}
+                  posicionesAptasIds={posicionesAptasIds}
+                  posicionesNaturalesIds={posicionesNaturalesIds}
+                  valoracionesGenerales={valoracionesGenerales}
+                />
               )}
             </div>
           </section>

@@ -1,16 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import PlayerStatsMatchesView from './PlayerStatsMatchesView'
 import PlayerStatsSummaryView from './PlayerStatsSummaryView'
 import PlayerStatsTimeView from './PlayerStatsTimeView'
 import PlayerStatsZonesView from './PlayerStatsZonesView'
-import { obtenerAccionesDeObservaciones } from '../services/observationService'
+import { useEstadisticasJugador } from '../hooks/useEstadisticasJugador'
 import {
   TEXTO_MUESTRA,
   calcularPorPartido,
   evaluarMuestra,
   filtrarAccionesDeJuego,
 } from '../services/playerStatsService'
-import type { AccionObservacionDePartido } from '../types/accionObservacion'
 import type { PerfilScouting } from '../types/criterio'
 import type { ObservacionJugador } from '../types/observacion'
 
@@ -37,59 +36,21 @@ function formatearFecha(fecha: string) {
 }
 
 function PlayerStatsTab({ observaciones, perfilScouting }: PlayerStatsTabProps) {
-  const partidos = useMemo(
-    () =>
-      observaciones
-        .filter((observacion) => observacion.tipo === 'partido')
-        .sort((a, b) => b.fechaObservacion.localeCompare(a.fechaObservacion)),
-    [observaciones],
-  )
+  const {
+    accionesTodas,
+    cargandoAcciones: cargando,
+    errorAcciones: error,
+    partidos,
+  } = useEstadisticasJugador(observaciones)
 
   const [modo, setModo] = useState<ModoFiltro>('todos')
   const [vista, setVista] = useState<VistaEstadisticas>('resumen')
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
-  const [accionesTodas, setAccionesTodas] = useState<AccionObservacionDePartido[]>([])
-  const [cargando, setCargando] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   // Se cargan de golpe las acciones de TODOS los partidos y el filtrado se hace
   // en memoria. Son unas pocas decenas de filas por jugador, y a cambio cambiar
   // de filtro es instantáneo y se puede saber cuántas acciones tiene cada
   // partido antes de elegirlo.
-  const claveTodos = partidos.map((partido) => partido.id).join('|')
-
-  useEffect(() => {
-    let cancelado = false
-
-    async function cargarAcciones() {
-      if (claveTodos === '') {
-        if (!cancelado) setAccionesTodas([])
-        return
-      }
-
-      setCargando(true)
-      setError(null)
-
-      try {
-        const datos = await obtenerAccionesDeObservaciones(claveTodos.split('|'))
-        if (!cancelado) setAccionesTodas(datos)
-      } catch {
-        if (!cancelado) {
-          setError('No se han podido cargar las acciones de los partidos.')
-          setAccionesTodas([])
-        }
-      } finally {
-        if (!cancelado) setCargando(false)
-      }
-    }
-
-    void cargarAcciones()
-
-    return () => {
-      cancelado = true
-    }
-  }, [claveTodos])
-
   const idsActivos = useMemo(() => {
     if (modo === 'ultimo') return partidos.slice(0, 1).map((partido) => partido.id)
     if (modo === 'ultimos3') return partidos.slice(0, 3).map((partido) => partido.id)

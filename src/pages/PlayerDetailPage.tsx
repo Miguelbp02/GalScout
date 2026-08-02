@@ -335,7 +335,7 @@ function PlayerDetailPage() {
                   className="player-detail-indice"
                   title={`${jugador.nombre} — jugador de esta ficha`}
                 >
-                  {jugador.nombre}
+                  <span className="player-detail-indice-nombre">{jugador.nombre}</span>
                   {posicionesNaturalesJugador.length > 0 && (
                     <span className="player-detail-indice-posiciones">
                       {posicionesNaturalesJugador.map((posicion) => (

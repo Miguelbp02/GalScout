@@ -209,6 +209,7 @@
      necesitan que coincida exactamente con var(--app-surface-raised) para
      fundirse sin costura con el panel. Un gradiente aquí rompería ese efecto. */
   border-radius: var(--bs-card-border-radius);
+  border-top-right-radius: 0;
   background: var(--app-surface-raised);
   box-shadow: none;
 }
@@ -259,27 +260,20 @@
 }
 
 /* Misma costura que .player-detail-tab.active, sin variaciones: se lee
-   como una pestaña más del archivador. */
-.player-detail-indice::before,
-.player-detail-indice::after {
+   como una pestaña más del archivador. Solo hace falta a la izquierda:
+   ahí la pestaña linda con la lista de tabs. A la derecha no hay nada
+   contra lo que fundirse (es el borde de la ficha), así que ese lado
+   no lleva costura o queda flotando sobre el fondo. */
+.player-detail-indice::before {
   position: absolute;
   bottom: -1px;
+  left: -0.83rem;
   width: 0.83rem;
   height: 0.83rem;
   background: transparent;
-  content: '';
-}
-
-.player-detail-indice::before {
-  left: -0.83rem;
   border-bottom-right-radius: var(--bs-card-border-radius);
   box-shadow: 0.33rem 0.33rem 0 0 var(--app-surface-raised);
-}
-
-.player-detail-indice::after {
-  right: -0.83rem;
-  border-bottom-left-radius: var(--bs-card-border-radius);
-  box-shadow: -0.33rem 0.33rem 0 0 var(--app-surface-raised);
+  content: '';
 }
 
 .player-detail-indice-posiciones {
@@ -1235,49 +1229,225 @@ h1 {
   gap: 16px;
 }
 
-.stats-pitch-map-filtros {
+.stats-etiquetas-filtro {
   display: flex;
   flex-direction: column;
   gap: 14px;
   flex-shrink: 0;
-  min-width: 170px;
-  max-width: 220px;
+  min-width: 176px;
+  max-width: 230px;
 }
 
-.stats-pitch-map-grupo {
+.stats-etiquetas-grupo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
-.stats-pitch-map-check {
+.stats-etiquetas-grupo-cabecera {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+}
+
+.stats-etiquetas-grupo-titulo {
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.stats-etiquetas-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.stats-etiquetas-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+  padding: 0.3rem 0.42rem 0.3rem 0.66rem;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: transparent;
   color: var(--bs-secondary-color);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  cursor: pointer;
+  line-height: 1.1;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease,
+    opacity 0.16s ease;
 }
 
-.stats-pitch-map-check input {
-  flex-shrink: 0;
+.stats-etiquetas-chip:hover:not(:disabled),
+.stats-etiquetas-chip:focus-visible {
+  outline: none;
+  border-color: var(--app-accent);
 }
 
-.stats-pitch-map-dot {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
+.stats-etiquetas-chip:not(.active) {
+  opacity: 0.5;
+}
+
+/* El contador va en una cápsula propia: el número es tan informativo como el
+   nombre, y sin separarlo se lee como parte de la etiqueta. */
+.stats-etiquetas-chip-total {
+  min-width: 1.3rem;
+  padding: 0.05rem 0.34rem;
+  border-radius: 999px;
+  background: var(--app-overlay-medium);
+  color: var(--app-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-etiquetas-chip--positiva.active {
+  border-color: var(--app-success-text);
+  background: var(--app-success-bg);
+  color: var(--app-success-text);
+}
+
+.stats-etiquetas-chip--negativa.active {
+  border-color: var(--app-danger-text-soft);
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text-soft);
+}
+
+/* Una etiqueta sin registros no se puede filtrar, pero se deja a la vista:
+   saber que el jugador NO tiene ni un gol también es información. */
+.stats-etiquetas-chip--vacia {
+  opacity: 0.34;
+  cursor: default;
+}
+
+.stats-etiquetas-chip--vacia .stats-etiquetas-chip-total {
+  background: transparent;
+}
+
+/* Etiqueta retirada del catálogo que sigue apareciendo en informes antiguos. */
+.stats-etiquetas-chip--obsoleta {
+  border-style: dashed;
+}
+
+.stats-etiquetas-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 1.2rem;
   flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.stats-etiquetas-toggle:focus-visible .stats-etiquetas-toggle-track {
+  outline: 2px solid var(--app-action);
+  outline-offset: 2px;
+}
+
+.stats-etiquetas-toggle-track {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  border: 1px solid var(--app-border);
+  border-radius: inherit;
+  background: var(--app-surface);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.stats-etiquetas-toggle-thumb {
+  width: 0.8rem;
+  height: 0.8rem;
   border-radius: 50%;
+  background: var(--app-muted);
+  box-shadow: var(--app-shadow-sm);
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.stats-pitch-map-dot--positiva {
-  background-color: var(--app-success-text);
+.stats-etiquetas-toggle[aria-pressed='true'] .stats-etiquetas-toggle-thumb {
+  transform: translateX(0.9rem);
 }
 
-.stats-pitch-map-dot--negativa {
-  background-color: var(--app-danger-text-soft);
+.stats-etiquetas-toggle--positiva[aria-pressed='true'] .stats-etiquetas-toggle-track {
+  border-color: var(--app-success-text);
+  background: var(--app-success-bg);
+}
+
+.stats-etiquetas-toggle--positiva[aria-pressed='true'] .stats-etiquetas-toggle-thumb {
+  background: var(--app-success-text);
+}
+
+.stats-etiquetas-toggle--negativa[aria-pressed='true'] .stats-etiquetas-toggle-track {
+  border-color: var(--app-danger-text-soft);
+  background: var(--app-danger-bg);
+}
+
+.stats-etiquetas-toggle--negativa[aria-pressed='true'] .stats-etiquetas-toggle-thumb {
+  background: var(--app-danger-text-soft);
+}
+
+/* Conmutador de modo del mapa: mismo lenguaje que las pestañas de vista, pero
+   más pequeño porque vive dentro de la cabecera de un bloque. */
+.stats-pitch-map-modos {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: var(--app-surface);
+}
+
+.stats-pitch-map-modo {
+  padding: 0.24rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  font-size: 0.76rem;
+  font-weight: 700;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.stats-pitch-map-modo:focus-visible {
+  outline: 2px solid var(--app-action);
+  outline-offset: 2px;
+}
+
+.stats-pitch-map-modo.active {
+  background: var(--app-action);
+  color: #fff;
+}
+
+.stats-pitch-map-celda-texto {
+  fill: var(--app-pitch-etiqueta);
+  font-size: 4px;
+  font-weight: 700;
+}
+
+/* El sentido de ataque no se puede deducir del dibujo: sin este rótulo, el
+   mapa de zonas se puede leer justo del revés. */
+.stats-pitch-map-sentido {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(13, 17, 19, 0.55);
+  color: var(--app-pitch-etiqueta);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
 }
 
 .stats-pitch-map-campo {
@@ -1339,20 +1509,349 @@ h1 {
 .player-stats-lista-partidos {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   padding: 10px 12px;
   border: 1px solid var(--app-border);
   border-radius: 8px;
   background-color: var(--app-surface-raised);
 }
 
-.player-stats-partido-check {
+.player-stats-lista-cabecera {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+}
+
+.player-stats-partidos-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.player-stats-partido-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.34rem 0.7rem;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.1;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.player-stats-partido-chip:hover,
+.player-stats-partido-chip:focus-visible {
+  outline: none;
+  border-color: var(--app-accent);
+}
+
+.player-stats-partido-chip:not(.active) {
+  opacity: 0.55;
+}
+
+.player-stats-partido-chip.active {
+  border-color: var(--app-action);
+  background: var(--app-info-bg);
+  color: var(--app-info-text);
+}
+
+.player-stats-partido-chip-fecha {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-stats-partido-chip-rival {
+  font-size: 0.72rem;
+}
+
+.player-stats-partido-chip-total {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* Un partido sin acciones sigue contando como partido en todas las medias, así
+   que hay que poder verlo antes de incluirlo. */
+.player-stats-partido-chip--vacio .player-stats-partido-chip-total {
+  font-style: italic;
+}
+
+.player-stats-muestra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin: 0;
+  color: var(--bs-secondary-color);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.player-stats-muestra-dato strong {
   color: var(--app-text);
-  font-size: 0.85rem;
-  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-stats-muestra-nivel {
+  padding: 0.14rem 0.6rem;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.player-stats-muestra-nivel--baja,
+.player-stats-muestra-nivel--sin-datos {
+  border-color: var(--app-info-border);
+  background: var(--app-info-bg);
+  color: var(--app-info-text);
+}
+
+.player-stats-muestra-nivel--suficiente {
+  border-color: var(--app-success-border);
+  color: var(--app-success-text);
+}
+
+/* Navegación entre vistas. Se distingue a propósito del btn-group del filtro
+   de partidos: son dos controles distintos y apilados no pueden leerse igual. */
+.player-stats-vistas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: var(--app-surface);
+}
+
+.player-stats-vista-tab {
+  flex: 1 1 auto;
+  padding: 0.36rem 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.player-stats-vista-tab:hover:not(.active) {
+  background: var(--app-overlay-medium);
+  color: var(--app-text);
+}
+
+.player-stats-vista-tab:focus-visible {
+  outline: 2px solid var(--app-action);
+  outline-offset: 2px;
+}
+
+.player-stats-vista-tab.active {
+  background: var(--app-action);
+  color: #fff;
+}
+
+.player-stats-vista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.player-stats-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  background-color: var(--app-surface-raised);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.player-stats-bloque-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.player-stats-bloque-titulo {
+  margin: 0;
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.player-stats-bloque-ayuda {
+  margin: 0;
+  color: var(--bs-secondary-color);
+  font-size: 0.75rem;
+}
+
+.player-stats-bloque-vacio {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--app-border);
+  border-radius: 10px;
+  color: var(--bs-secondary-color);
+  font-size: 0.82rem;
+}
+
+.player-stats-aviso {
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--app-info-border);
+  border-radius: 8px;
+  background: var(--app-info-bg);
+  color: var(--app-info-text);
+  font-size: 0.76rem;
+}
+
+.player-stats-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.player-stats-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background-color: var(--app-scrim);
+}
+
+.player-stats-kpi-valor {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-stats-kpi-valor--neutro {
+  color: var(--app-text);
+}
+
+.player-stats-kpi-valor--positivo {
+  color: var(--app-accent);
+}
+
+.player-stats-kpi-valor--negativo {
+  color: var(--app-danger-text);
+}
+
+.player-stats-kpi-etiqueta {
+  color: var(--app-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.player-stats-kpi-detalle {
+  color: var(--bs-secondary-color);
+  font-size: 0.72rem;
+}
+
+.player-stats-split {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-stats-split-pista {
+  display: flex;
+  height: 11px;
+  border-radius: 999px;
+  background-color: var(--app-overlay-soft);
+  overflow: hidden;
+}
+
+.player-stats-split-segmento {
+  height: 100%;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.player-stats-split-segmento--positiva,
+.player-stats-split-punto--positiva {
+  background-color: var(--app-accent);
+}
+
+.player-stats-split-segmento--negativa,
+.player-stats-split-punto--negativa {
+  background-color: var(--app-danger-text);
+}
+
+.player-stats-split-segmento--accion,
+.player-stats-split-punto--accion {
+  background-color: var(--app-action);
+}
+
+.player-stats-split-segmento--acento,
+.player-stats-split-punto--acento {
+  background-color: var(--app-accent);
+}
+
+.player-stats-split-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.player-stats-split-leyenda-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bs-secondary-color);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.player-stats-split-punto {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.player-stats-split-leyenda-valor {
+  color: var(--app-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-stats-split-leyenda-porcentaje {
+  color: var(--bs-secondary-color);
+  font-weight: 600;
+}
+
+.player-stats-split-vacio {
+  margin: 0;
+  color: var(--bs-secondary-color);
+  font-size: 0.78rem;
+}
+
+.player-stats-reparto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.player-stats-reparto-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .player-stats-resumen {
@@ -1397,48 +1896,293 @@ h1 {
   background-color: var(--app-accent);
 }
 
-.player-stats-metric-simple {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
+.player-stats-barra-intentos {
+  color: var(--bs-secondary-color);
+  font-weight: 600;
 }
 
-.player-stats-metric-simple-valor {
+.player-stats-barra-ayuda {
+  margin: 0;
+  color: var(--bs-secondary-color);
+  font-size: 0.72rem;
+}
+
+/* Sin datos no es lo mismo que cero: la pista discontinua y vacía lo dice sin
+   necesidad de pintar una barra al 0 % que se leería como un mal registro. */
+.player-stats-barra--sin-datos .player-stats-barra-pista {
+  border: 1px dashed var(--app-border);
+  background: transparent;
+}
+
+.player-stats-repertorio {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.player-stats-repertorio-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-stats-repertorio-fila {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 10px;
+  align-items: baseline;
+}
+
+.player-stats-repertorio-nombre {
+  color: var(--app-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.player-stats-repertorio-total {
+  color: var(--app-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-stats-repertorio-media {
+  color: var(--bs-secondary-color);
+  font-weight: 600;
+}
+
+.player-stats-repertorio-pista {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 999px;
+  background-color: var(--app-overlay-soft);
+  overflow: hidden;
+}
+
+.player-stats-repertorio-relleno {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.player-stats-repertorio-relleno--positiva {
+  background-color: var(--app-accent);
+}
+
+.player-stats-repertorio-relleno--negativa {
+  background-color: var(--app-danger-text-soft);
+}
+
+.player-stats-partes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.player-stats-parte {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background-color: var(--app-scrim);
+}
+
+.player-stats-parte-titulo {
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.player-stats-parte-valor {
   color: var(--app-text);
   font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-stats-parte-detalle {
+  color: var(--bs-secondary-color);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.player-stats-parte-vacia {
+  color: var(--bs-secondary-color);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.player-stats-parte-delta {
+  margin: 0;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
-.player-stats-metric-simple-etiqueta {
+.player-stats-parte-delta--baja {
+  color: var(--app-danger-text);
+}
+
+.player-stats-parte-delta--sube {
+  color: var(--app-accent);
+}
+
+.player-stats-timeline {
+  overflow-x: auto;
+}
+
+.player-stats-timeline-svg {
+  display: block;
+  width: 100%;
+  min-width: 460px;
+  height: auto;
+}
+
+.player-stats-timeline-barra--positiva {
+  fill: var(--app-accent);
+}
+
+.player-stats-timeline-barra--negativa {
+  fill: var(--app-danger-text);
+}
+
+.player-stats-timeline-eje {
+  stroke: var(--app-border);
+  stroke-width: 1;
+}
+
+.player-stats-timeline-descanso {
+  stroke: var(--app-muted);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.player-stats-timeline-etiqueta,
+.player-stats-timeline-valor {
+  fill: var(--bs-secondary-color);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.player-stats-timeline-valor {
+  fill: var(--app-text);
+}
+
+.player-stats-timeline-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   color: var(--bs-secondary-color);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
-.player-stats-conteos {
-  display: flex;
-  flex-wrap: wrap;
+.player-stats-timeline-leyenda li {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
 }
 
-.player-stats-conteo {
-  padding: 4px 10px;
-  border: 1px solid var(--app-border);
+.player-stats-timeline-leyenda-nota {
+  font-style: italic;
+}
+
+.player-stats-consistencia {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(56px, 1fr);
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.player-stats-consistencia-columna {
+  display: grid;
+  grid-template-rows: 54px 1px 54px auto auto;
+  gap: 4px;
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.player-stats-consistencia-columna:hover {
+  border-color: var(--app-border);
+  background: var(--app-overlay-soft);
+}
+
+.player-stats-consistencia-columna:focus-visible {
+  outline: 2px solid var(--app-action);
+  outline-offset: 2px;
+}
+
+.player-stats-consistencia-positivas,
+.player-stats-consistencia-negativas {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.player-stats-consistencia-positivas {
+  align-items: flex-end;
+}
+
+.player-stats-consistencia-negativas {
+  align-items: flex-start;
+}
+
+.player-stats-consistencia-barra {
+  width: 60%;
+  min-height: 2px;
+  border-radius: 3px;
+}
+
+.player-stats-consistencia-barra--positiva {
+  background-color: var(--app-accent);
+}
+
+.player-stats-consistencia-barra--negativa {
+  background-color: var(--app-danger-text);
+}
+
+.player-stats-consistencia-eje {
+  width: 100%;
+  height: 1px;
+  background-color: var(--app-border);
+}
+
+.player-stats-consistencia-nota {
+  justify-self: center;
+  padding: 2px 7px;
   border-radius: 999px;
-  background-color: var(--app-surface-raised);
-  color: var(--app-text);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Un informe sin valoraciones muestra una raya, nunca un cero: no puntuar no
+   es puntuar mal. */
+.player-stats-consistencia-nota--vacia {
+  color: var(--bs-secondary-color);
   font-weight: 600;
 }
 
-.player-stats-conteo--positiva {
-  border-color: rgba(97, 169, 107, 0.55);
-}
-
-.player-stats-conteo--negativa {
-  border-color: rgba(207, 75, 84, 0.5);
-  color: var(--app-danger-text-soft);
+.player-stats-consistencia-fecha {
+  color: var(--bs-secondary-color);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .general-rating-item {
@@ -3250,6 +3994,49 @@ h1 {
   box-shadow: 0 0 0 0.2rem var(--app-info-bg);
 }
 
+/* En claro las superficies elevadas se apoyan en --app-surface, igual que el
+   resto de tarjetas del tema, y no en --app-surface-raised. */
+[data-bs-theme='light'] .player-stats-bloque,
+[data-bs-theme='light'] .player-stats-kpi,
+[data-bs-theme='light'] .player-stats-parte,
+[data-bs-theme='light'] .player-stats-lista-partidos {
+  border-color: var(--app-border);
+  background-color: var(--app-surface);
+}
+
+/* Mismo criterio que .rating-bar: sobre fondo claro las pistas necesitan
+   contorno propio o se pierden contra la superficie. */
+[data-bs-theme='light'] .player-stats-barra-pista,
+[data-bs-theme='light'] .player-stats-split-pista,
+[data-bs-theme='light'] .player-stats-repertorio-pista {
+  border: 1px solid var(--app-text);
+  background-color: var(--app-surface);
+}
+
+[data-bs-theme='light'] .player-stats-vistas,
+[data-bs-theme='light'] .stats-pitch-map-modos,
+[data-bs-theme='light'] .stats-etiquetas-toggle-track {
+  background-color: var(--app-surface);
+}
+
+[data-bs-theme='light'] .player-stats-timeline-eje,
+[data-bs-theme='light'] .player-stats-timeline-descanso {
+  stroke: var(--app-text);
+  stroke-width: 1.2;
+}
+
+[data-bs-theme='light'] .player-stats-timeline-etiqueta {
+  fill: var(--app-muted);
+}
+
+[data-bs-theme='light'] .player-stats-consistencia-eje {
+  background-color: var(--app-text);
+}
+
+[data-bs-theme='light'] .stats-etiquetas-chip-total {
+  background: var(--app-overlay-hairline);
+}
+
 @media (max-width: 900px) {
   .match-main-area {
     grid-template-columns: 1fr;
@@ -3320,10 +4107,51 @@ h1 {
     flex-direction: column;
   }
 
-  .stats-pitch-map-filtros {
+  .stats-etiquetas-filtro {
     flex-direction: row;
     flex-wrap: wrap;
     max-width: none;
+  }
+
+  .player-stats-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .player-stats-repertorio,
+  .player-stats-reparto {
+    grid-template-columns: 1fr;
+  }
+
+  .player-stats-vista-tab {
+    padding: 0.36rem 0.5rem;
+    font-size: 0.78rem;
+  }
+
+  /* En móvil las tres pestañas más la píldora del nombre no caben en la fila,
+     y como está posicionada en absoluto el sobrante empujaba toda la página a
+     lo ancho. Se aprieta la fila y el nombre se recorta con puntos suspensivos
+     en vez de desbordar. */
+  .player-detail-tab {
+    padding: 0.55rem 0.62rem;
+    font-size: 0.82rem;
+  }
+
+  .player-detail-tabs-lista {
+    min-width: 0;
+  }
+
+  .player-detail-indice {
+    min-width: 0;
+    flex-shrink: 1;
+    padding-right: 0.62rem;
+    padding-left: 0.62rem;
+    font-size: 0.82rem;
+  }
+
+  .player-detail-indice-nombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .match-timer-row {
@@ -3339,5 +4167,12 @@ h1 {
     right: 12px;
     bottom: 12px;
     font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-stats-split-segmento,
+  .player-stats-repertorio-relleno {
+    transition: none;
   }
 }

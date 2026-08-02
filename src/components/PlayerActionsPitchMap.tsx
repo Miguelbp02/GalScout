@@ -1,139 +1,142 @@
-import { useEffect, useRef, useState } from 'react'
-import { obtenerEtiquetasAccion } from '../services/actionTagService'
-import { normalizarX } from '../services/playerStatsService'
+import { useRef, useState } from 'react'
+import { normalizarX, normalizarY } from '../services/playerStatsService'
 import PitchOutlineSvg, { ALTO_CAMPO, ANCHO_CAMPO } from './PitchOutlineSvg'
-import type { AccionObservacionDePartido, EtiquetaAccion } from '../types/accionObservacion'
-import type { PerfilScouting } from '../types/criterio'
+import type { AccionObservacionDePartido } from '../types/accionObservacion'
+import type { ResumenZonas } from '../services/playerStatsService'
+
+export type ModoMapa = 'puntos' | 'zonas'
 
 interface PlayerActionsPitchMapProps {
+  /** Acciones ya filtradas por el llamante: aquí solo se dibujan. */
   acciones: AccionObservacionDePartido[]
-  perfilScouting: PerfilScouting
+  modo: ModoMapa
+  zonas: ResumenZonas
 }
 
-const COLOR_POSITIVA = 'var(--app-success-text)'
-const COLOR_NEGATIVA = 'var(--app-danger-text-soft)'
-
 interface PuntoHover {
-  minuto: number
+  texto: string
   left: number
   top: number
 }
 
-function PlayerActionsPitchMap({ acciones, perfilScouting }: PlayerActionsPitchMapProps) {
-  const [etiquetas, setEtiquetas] = useState<EtiquetaAccion[]>([])
-  const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set())
+// El campo se dibuja en horizontal (105x68) y el grupo se gira 90º para verlo
+// en vertical: campo propio abajo, portería rival arriba, que es como se lee
+// un mapa de acciones. Los tercios se marcan a un tercio y dos tercios del
+// largo, que es exactamente donde corta `calcularZonas`.
+const TERCIO = ANCHO_CAMPO / 3
+const CARRIL = ALTO_CAMPO / 3
+
+function PlayerActionsPitchMap({ acciones, modo, zonas }: PlayerActionsPitchMapProps) {
   const [puntoHover, setPuntoHover] = useState<PuntoHover | null>(null)
   const campoRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    let cancelado = false
-
-    obtenerEtiquetasAccion(perfilScouting)
-      .then((datos) => {
-        if (cancelado) return
-        const normales = datos.filter((etiqueta) => !etiqueta.esSustitucion)
-        setEtiquetas(normales)
-        setSeleccionadas(new Set(normales.map((etiqueta) => etiqueta.nombre)))
-      })
-      .catch(() => {
-        if (!cancelado) setEtiquetas([])
-      })
-
-    return () => {
-      cancelado = true
-    }
-  }, [perfilScouting])
-
-  const etiquetasPositivas = etiquetas.filter((etiqueta) => etiqueta.categoria === 'positiva')
-  const etiquetasNegativas = etiquetas.filter((etiqueta) => etiqueta.categoria === 'negativa')
-
-  function alternarEtiqueta(nombre: string) {
-    setSeleccionadas((actual) => {
-      const nuevo = new Set(actual)
-      if (nuevo.has(nombre)) {
-        nuevo.delete(nombre)
-      } else {
-        nuevo.add(nombre)
-      }
-      return nuevo
-    })
-  }
-
-  const accionesVisibles = acciones.filter(
-    (accion) => accion.categoria !== 'neutra' && seleccionadas.has(accion.etiquetaNombre),
-  )
-
-  function mostrarHover(evento: React.MouseEvent, minuto: number) {
+  function mostrarHover(evento: React.MouseEvent, texto: string) {
     const contenedor = campoRef.current
     if (!contenedor) return
 
     const rect = contenedor.getBoundingClientRect()
-    setPuntoHover({
-      minuto,
-      left: evento.clientX - rect.left,
-      top: evento.clientY - rect.top,
-    })
+    setPuntoHover({ texto, left: evento.clientX - rect.left, top: evento.clientY - rect.top })
   }
 
-  function renderLista(lista: EtiquetaAccion[], claseColor: string) {
-    return (
-      <div className="stats-pitch-map-grupo">
-        {lista.map((etiqueta) => (
-          <label className="stats-pitch-map-check" key={etiqueta.id}>
-            <input
-              checked={seleccionadas.has(etiqueta.nombre)}
-              type="checkbox"
-              onChange={() => alternarEtiqueta(etiqueta.nombre)}
-            />
-            <i aria-hidden="true" className={`stats-pitch-map-dot ${claseColor}`} />
-            {etiqueta.nombre}
-          </label>
-        ))}
-      </div>
-    )
-  }
+  const resumenAccesible =
+    modo === 'puntos'
+      ? `Mapa con ${acciones.length} acciones sobre el campo`
+      : `Mapa de zonas del campo con ${acciones.length} acciones repartidas en nueve áreas`
 
   return (
-    <div className="stats-pitch-map">
-      <div className="stats-pitch-map-filtros">
-        {renderLista(etiquetasPositivas, 'stats-pitch-map-dot--positiva')}
-        {renderLista(etiquetasNegativas, 'stats-pitch-map-dot--negativa')}
-      </div>
+    <div className="stats-pitch-map-campo" ref={campoRef}>
+      <svg
+        aria-label={resumenAccesible}
+        role="img"
+        viewBox={`0 0 ${ALTO_CAMPO} ${ANCHO_CAMPO}`}
+      >
+        <g transform={`translate(0, ${ANCHO_CAMPO}) rotate(-90)`}>
+          <PitchOutlineSvg />
 
-      <div className="stats-pitch-map-campo" ref={campoRef}>
-        {/* El campo se dibuja en horizontal (105x68) y se gira 90º para
-            mostrarlo en vertical: campo propio abajo, campo contrario
-            arriba, que es como todo el mundo espera leer un mapa así. */}
-        <svg viewBox={`0 0 ${ALTO_CAMPO} ${ANCHO_CAMPO}`}>
-          <g transform={`translate(0, ${ANCHO_CAMPO}) rotate(-90)`}>
-            <PitchOutlineSvg />
-            {accionesVisibles.map((accion) => (
+          {modo === 'zonas' &&
+            zonas.celdas.map((celda) => {
+              const indiceTercio = ['defensivo', 'medio', 'ofensivo'].indexOf(celda.tercio)
+              const indiceCarril = ['izquierdo', 'central', 'derecho'].indexOf(celda.carril)
+              const x = indiceTercio * TERCIO
+              const y = indiceCarril * CARRIL
+              const centroX = x + TERCIO / 2
+              const centroY = y + CARRIL / 2
+              const intensidad =
+                zonas.maximoCelda > 0 && celda.total > 0
+                  ? 0.14 + 0.5 * (celda.total / zonas.maximoCelda)
+                  : 0
+
+              return (
+                <g key={`${celda.tercio}-${celda.carril}`}>
+                  <rect
+                    fill="var(--app-pitch-celda)"
+                    fillOpacity={intensidad}
+                    height={CARRIL}
+                    stroke="var(--app-pitch-linea)"
+                    strokeWidth="0.2"
+                    width={TERCIO}
+                    x={x}
+                    y={y}
+                  />
+                  {celda.total > 0 && (
+                    // El grupo padre está girado -90º, así que el número hay
+                    // que contra-rotarlo para que se lea en horizontal.
+                    <text
+                      className="stats-pitch-map-celda-texto"
+                      dominantBaseline="central"
+                      textAnchor="middle"
+                      transform={`rotate(90 ${centroX} ${centroY})`}
+                      x={centroX}
+                      y={centroY}
+                    >
+                      {celda.total}
+                    </text>
+                  )}
+                </g>
+              )
+            })}
+
+          {modo === 'puntos' &&
+            acciones.map((accion) => (
               <circle
                 className="stats-pitch-map-punto"
                 cx={(normalizarX(accion) / 100) * ANCHO_CAMPO}
-                cy={(accion.y / 100) * ALTO_CAMPO}
-                fill={accion.categoria === 'positiva' ? COLOR_POSITIVA : COLOR_NEGATIVA}
+                cy={(normalizarY(accion) / 100) * ALTO_CAMPO}
+                fill={
+                  accion.categoria === 'positiva'
+                    ? 'var(--app-pitch-positiva)'
+                    : 'var(--app-pitch-negativa)'
+                }
                 key={accion.id}
-                r="1.3"
-                stroke="#0d1113"
-                strokeWidth="0.25"
-                onMouseEnter={(evento) => mostrarHover(evento, accion.minuto)}
+                r="1.4"
+                stroke="var(--app-pitch-trazo)"
+                strokeWidth="0.28"
+                onMouseEnter={(evento) =>
+                  mostrarHover(evento, `${accion.etiquetaNombre} · min ${accion.minuto}'`)
+                }
                 onMouseLeave={() => setPuntoHover(null)}
-                onMouseMove={(evento) => mostrarHover(evento, accion.minuto)}
-              />
+                onMouseMove={(evento) =>
+                  mostrarHover(evento, `${accion.etiquetaNombre} · min ${accion.minuto}'`)
+                }
+              >
+                <title>{`${accion.etiquetaNombre} · minuto ${accion.minuto}`}</title>
+              </circle>
             ))}
-          </g>
-        </svg>
+        </g>
+      </svg>
 
-        {puntoHover && (
-          <div
-            className="stats-pitch-map-tooltip"
-            style={{ left: puntoHover.left, top: puntoHover.top }}
-          >
-            Minuto {puntoHover.minuto}&apos;
-          </div>
-        )}
-      </div>
+      <span aria-hidden="true" className="stats-pitch-map-sentido">
+        Ataca hacia arriba
+      </span>
+
+      {puntoHover && (
+        <div
+          className="stats-pitch-map-tooltip"
+          style={{ left: puntoHover.left, top: puntoHover.top }}
+        >
+          {puntoHover.texto}
+        </div>
+      )}
     </div>
   )
 }

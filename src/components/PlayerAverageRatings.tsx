@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { obtenerClaseNivel } from '../constants/nivelesValoracion'
 import { obtenerValoracionesMediasJugador } from '../services/playerRatingsService'
 import type {
   GrupoCriterio,
@@ -20,15 +21,6 @@ function formatearMedia(media: number) {
   return new Intl.NumberFormat('es-ES', {
     maximumFractionDigits: 1,
   }).format(media)
-}
-
-function obtenerClaseNivel(media: number) {
-  if (media < 5) return 'rating-level-red'
-  if (media < 8) return 'rating-level-orange'
-  if (media < 12) return 'rating-level-yellow'
-  if (media < 15) return 'rating-level-lime'
-
-  return 'rating-level-green'
 }
 
 function PlayerAverageRatings({

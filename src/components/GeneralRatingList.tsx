@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import HistoryListSkeleton from './HistoryListSkeleton'
 import TrashIcon from './TrashIcon'
+import { obtenerClaseNivel } from '../constants/nivelesValoracion'
 import type { ValoracionGeneral } from '../types/valoracionGeneral'
 
 interface GeneralRatingListProps {
@@ -15,15 +16,6 @@ function formatearFecha(fecha: string, incluirHora = false) {
     dateStyle: 'medium',
     ...(incluirHora ? { timeStyle: 'short' } : {}),
   }).format(new Date(fecha))
-}
-
-function obtenerClaseNivel(puntuacion: number) {
-  if (puntuacion < 5) return 'rating-level-red'
-  if (puntuacion < 8) return 'rating-level-orange'
-  if (puntuacion < 12) return 'rating-level-yellow'
-  if (puntuacion < 15) return 'rating-level-lime'
-
-  return 'rating-level-green'
 }
 
 function GeneralRatingList({

@@ -8,9 +8,11 @@ import type {
 import type { ValoracionObservacion } from '../types/observacion'
 import type {
   AccionObservacion,
+  AccionObservacionDePartido,
   CategoriaEtiquetaAccion,
   NuevaAccionObservacion,
 } from '../types/accionObservacion'
+import type { LadoCampo } from '../types/matchSession'
 
 const columnasObservacion =
   'id, autor_id, fecha_observacion, notas, created_at, tipo, competicion, jornada, equipo_jugador_id, equipo_rival_id'
@@ -275,8 +277,10 @@ export async function eliminarObservaciones(ids: string[]): Promise<void> {
 
 interface AccionFila {
   id: string
+  observacion_id: string
   minuto: number
   parte: 1 | 2
+  direccion_ataque: LadoCampo
   x: number
   y: number
   nota_libre: string
@@ -284,6 +288,28 @@ interface AccionFila {
     | { id: number; nombre: string; categoria: CategoriaEtiquetaAccion }
     | { id: number; nombre: string; categoria: CategoriaEtiquetaAccion }[]
     | null
+}
+
+const columnasAccion =
+  'id, observacion_id, minuto, parte, direccion_ataque, x, y, nota_libre, etiqueta:etiquetas_accion(id, nombre, categoria)'
+
+function mapearFilaAccion(fila: AccionFila): AccionObservacionDePartido | null {
+  const etiqueta = Array.isArray(fila.etiqueta) ? fila.etiqueta[0] : fila.etiqueta
+  if (!etiqueta) return null
+
+  return {
+    id: fila.id,
+    observacionId: fila.observacion_id,
+    etiquetaId: etiqueta.id,
+    etiquetaNombre: etiqueta.nombre,
+    categoria: etiqueta.categoria,
+    minuto: fila.minuto,
+    parte: fila.parte,
+    direccionAtaque: fila.direccion_ataque,
+    x: Number(fila.x),
+    y: Number(fila.y),
+    notaLibre: fila.nota_libre,
+  }
 }
 
 export async function crearAccionesObservacion(
@@ -298,6 +324,7 @@ export async function crearAccionesObservacion(
       etiqueta_id: accion.etiquetaId,
       minuto: accion.minuto,
       parte: accion.parte,
+      direccion_ataque: accion.direccionAtaque,
       x: accion.x,
       y: accion.y,
       nota_libre: accion.notaLibre.trim(),
@@ -314,7 +341,7 @@ export async function obtenerAccionesObservacion(
 ): Promise<AccionObservacion[]> {
   const { data, error } = await supabase
     .from('acciones_observacion')
-    .select('id, minuto, parte, x, y, nota_libre, etiqueta:etiquetas_accion(id, nombre, categoria)')
+    .select(columnasAccion)
     .eq('observacion_id', observacionId)
     .order('minuto', { ascending: true })
 
@@ -322,22 +349,27 @@ export async function obtenerAccionesObservacion(
     throw new Error(error.message)
   }
 
-  return (data as unknown as AccionFila[]).flatMap((fila) => {
-    const etiqueta = Array.isArray(fila.etiqueta) ? fila.etiqueta[0] : fila.etiqueta
-    if (!etiqueta) return []
+  return (data as unknown as AccionFila[]).flatMap(
+    (fila) => mapearFilaAccion(fila) ?? [],
+  )
+}
 
-    return [
-      {
-        id: fila.id,
-        etiquetaId: etiqueta.id,
-        etiquetaNombre: etiqueta.nombre,
-        categoria: etiqueta.categoria,
-        minuto: fila.minuto,
-        parte: fila.parte,
-        x: Number(fila.x),
-        y: Number(fila.y),
-        notaLibre: fila.nota_libre,
-      },
-    ]
-  })
+export async function obtenerAccionesDeObservaciones(
+  observacionIds: string[],
+): Promise<AccionObservacionDePartido[]> {
+  if (observacionIds.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('acciones_observacion')
+    .select(columnasAccion)
+    .in('observacion_id', observacionIds)
+    .order('minuto', { ascending: true })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return (data as unknown as AccionFila[]).flatMap(
+    (fila) => mapearFilaAccion(fila) ?? [],
+  )
 }

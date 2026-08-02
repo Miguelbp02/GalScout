@@ -7,6 +7,10 @@ function formatearMinutoSegundo(segundos: number) {
   return `${minutos}:${String(restoSegundos).padStart(2, '0')}`
 }
 
+const MINUTO_MAXIMO = 130
+const MARCAS_TIEMPO = [15, 30, 45, 60, 75, 90, 105, 120]
+const MARCAS_PRINCIPALES = new Set([45, 90])
+
 interface MatchTimerBarProps {
   onCerrar: () => void
   onMinimizar: () => void
@@ -105,18 +109,35 @@ function MatchTimerBar({ onCerrar, onMinimizar }: MatchTimerBarProps) {
 
         <span className="match-timer-valor">{formatearMinutoSegundo(sesion.segundos)}</span>
 
-        <input
-          aria-label="Ajustar minuto del cronómetro"
-          className="match-timer-range"
-          disabled={!enFaseDeJuego}
-          max={130}
-          min={0}
-          type="range"
-          value={minutoPendiente ?? minutoActual}
-          onChange={(evento) => setMinutoPendiente(Number(evento.target.value))}
-          onMouseUp={confirmarAjuste}
-          onTouchEnd={confirmarAjuste}
-        />
+        <div className="match-timer-track">
+          <input
+            aria-label="Ajustar minuto del cronómetro"
+            className="match-timer-range"
+            disabled={!enFaseDeJuego}
+            max={MINUTO_MAXIMO}
+            min={0}
+            type="range"
+            value={minutoPendiente ?? minutoActual}
+            onChange={(evento) => setMinutoPendiente(Number(evento.target.value))}
+            onMouseUp={confirmarAjuste}
+            onTouchEnd={confirmarAjuste}
+          />
+          <div aria-hidden="true" className="match-timer-marcas">
+            {MARCAS_TIEMPO.map((minuto) => (
+              <span
+                className={`match-timer-marca ${
+                  MARCAS_PRINCIPALES.has(minuto) ? 'match-timer-marca--principal' : ''
+                }`}
+                key={minuto}
+                style={{ left: `${(minuto / MINUTO_MAXIMO) * 100}%` }}
+              >
+                {MARCAS_PRINCIPALES.has(minuto) && (
+                  <span className="match-timer-marca-texto">{minuto}&apos;</span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
 
         {sesion.estado === 'primera_parte' && (
           <button className="match-topbar-action" type="button" onClick={irADescanso}>

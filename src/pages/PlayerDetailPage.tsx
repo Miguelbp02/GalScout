@@ -10,9 +10,11 @@ import GeneralRatingList from '../components/GeneralRatingList'
 import PlayerDetailSkeleton from '../components/PlayerDetailSkeleton'
 import PlayerObservationForm from '../components/PlayerObservationForm'
 import PlayerObservationList from '../components/PlayerObservationList'
+import PlayerStatsTab from '../components/PlayerStatsTab'
 import PositionFieldSelector from '../components/PositionFieldSelector'
 import DominantFootIndicator from '../components/DominantFootIndicator'
 import TeamHistoryList from '../components/TeamHistoryList'
+import { obtenerAbreviaturaPosicion } from '../constants/positionAbbreviations'
 import {
   actualizarObservacionJugador,
   crearObservacionJugador,
@@ -77,6 +79,10 @@ function PlayerDetailPage() {
   )
     ? 'portero'
     : 'campo'
+
+  const posicionesNaturalesJugador = posiciones.filter((posicion) =>
+    posicionesNaturalesIds.includes(posicion.id),
+  )
 
   useEffect(() => {
     const id = jugadorId ?? ''
@@ -297,32 +303,53 @@ function PlayerDetailPage() {
             className={`card player-detail-summary player-detail-summary--${pestanaFicha} mt-4 shadow-sm`}
           >
             <div className="card-body p-3">
-              <nav
-                aria-label="Secciones de la ficha del jugador"
-                className="player-detail-tabs"
-                role="tablist"
-              >
-                {(
-                  [
-                    ['general', 'General'],
-                    ['historial', 'Historial'],
-                    ['estadisticas', 'Estadísticas'],
-                  ] as const
-                ).map(([pestana, etiqueta]) => (
-                  <button
-                    aria-selected={pestanaFicha === pestana}
-                    className={`player-detail-tab ${
-                      pestanaFicha === pestana ? 'active' : ''
-                    }`}
-                    key={pestana}
-                    role="tab"
-                    type="button"
-                    onClick={() => setPestanaFicha(pestana)}
-                  >
-                    {etiqueta}
-                  </button>
-                ))}
-              </nav>
+              <div className="player-detail-tabs">
+                <nav
+                  aria-label="Secciones de la ficha del jugador"
+                  className="player-detail-tabs-lista"
+                  role="tablist"
+                >
+                  {(
+                    [
+                      ['general', 'General'],
+                      ['historial', 'Historial'],
+                      ['estadisticas', 'Estadísticas'],
+                    ] as const
+                  ).map(([pestana, etiqueta]) => (
+                    <button
+                      aria-selected={pestanaFicha === pestana}
+                      className={`player-detail-tab ${
+                        pestanaFicha === pestana ? 'active' : ''
+                      }`}
+                      key={pestana}
+                      role="tab"
+                      type="button"
+                      onClick={() => setPestanaFicha(pestana)}
+                    >
+                      {etiqueta}
+                    </button>
+                  ))}
+                </nav>
+
+                <div
+                  className="player-detail-indice"
+                  title={`${jugador.nombre} — jugador de esta ficha`}
+                >
+                  {jugador.nombre}
+                  {posicionesNaturalesJugador.length > 0 && (
+                    <span className="player-detail-indice-posiciones">
+                      {posicionesNaturalesJugador.map((posicion) => (
+                        <span
+                          className="player-card-position-tag player-card-position-tag--natural"
+                          key={posicion.id}
+                        >
+                          {obtenerAbreviaturaPosicion(posicion.codigo)}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </div>
+              </div>
 
               {pestanaFicha === 'general' && (
                 <>
@@ -424,13 +451,7 @@ function PlayerDetailPage() {
               )}
 
               {pestanaFicha === 'estadisticas' && (
-                <section className="player-detail-empty-tab" role="tabpanel">
-                  <h2 className="h5">Estadísticas</h2>
-                  <p className="mb-0 text-body-secondary">
-                    Aquí aparecerán los datos de partidos, minutos, goles y otras
-                    estadísticas de temporada.
-                  </p>
-                </section>
+                <PlayerStatsTab observaciones={observaciones} perfilScouting={perfilScouting} />
               )}
             </div>
           </section>

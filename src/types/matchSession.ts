@@ -25,6 +25,7 @@ export interface AccionRegistrada {
   esSustitucion: boolean
   minuto: number
   parte: 1 | 2
+  direccionAtaque: LadoCampo
   x: number
   y: number
   notaLibre: string

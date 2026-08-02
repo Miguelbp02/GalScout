@@ -1,4 +1,5 @@
 import type { PerfilScouting } from './criterio'
+import type { LadoCampo } from './matchSession'
 
 export type CategoriaEtiquetaAccion = 'positiva' | 'negativa' | 'neutra'
 
@@ -15,6 +16,7 @@ export interface NuevaAccionObservacion {
   etiquetaId: number
   minuto: number
   parte: 1 | 2
+  direccionAtaque: LadoCampo
   x: number
   y: number
   notaLibre: string
@@ -27,7 +29,12 @@ export interface AccionObservacion {
   categoria: CategoriaEtiquetaAccion
   minuto: number
   parte: 1 | 2
+  direccionAtaque: LadoCampo
   x: number
   y: number
   notaLibre: string
+}
+
+export interface AccionObservacionDePartido extends AccionObservacion {
+  observacionId: string
 }

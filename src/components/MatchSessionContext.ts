@@ -28,7 +28,7 @@ export interface MatchSessionContextValue {
   iniciarSegundaParte: () => void
   finalizarPartido: () => void
   ajustarMinuto: (minuto: number) => void
-  agregarAccion: (accion: Omit<AccionRegistrada, 'id' | 'parte'>) => void
+  agregarAccion: (accion: Omit<AccionRegistrada, 'id' | 'parte' | 'direccionAtaque'>) => void
   eliminarAccion: (accionId: string) => void
   actualizarInforme: (jugadorId: string, texto: string) => void
   marcarInformeGuardado: (jugadorId: string) => void

@@ -4,7 +4,7 @@ import {
   type ConfiguracionInicialPartido,
   type MatchSessionContextValue,
 } from './MatchSessionContext'
-import type { AccionRegistrada, SesionPartido } from '../types/matchSession'
+import type { AccionRegistrada, LadoCampo, SesionPartido } from '../types/matchSession'
 
 const CLAVE_ALMACENAMIENTO = 'ojeo-partido-sesion'
 
@@ -12,6 +12,18 @@ function generarId() {
   return typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : `id-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function ladoOpuesto(lado: LadoCampo): LadoCampo {
+  return lado === 'izquierda' ? 'derecha' : 'izquierda'
+}
+
+function calcularDireccionAtaque(sesion: SesionPartido, jugadorId: string): LadoCampo {
+  const jugador = sesion.jugadores.find((item) => item.id === jugadorId)
+  const ladoDelJugador =
+    !jugador || jugador.equipo === 'A' ? sesion.ladoEquipoA : ladoOpuesto(sesion.ladoEquipoA)
+
+  return ladoOpuesto(ladoDelJugador)
 }
 
 function cargarSesionGuardada(): SesionPartido | null {
@@ -213,7 +225,7 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const agregarAccion = useCallback(
-    (accion: Omit<AccionRegistrada, 'id' | 'parte'>) => {
+    (accion: Omit<AccionRegistrada, 'id' | 'parte' | 'direccionAtaque'>) => {
       setSesion((actual) => {
         if (!actual) return actual
 
@@ -221,6 +233,7 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
           ...accion,
           id: generarId(),
           parte: actual.parte,
+          direccionAtaque: calcularDireccionAtaque(actual, accion.jugadorId),
         }
 
         return { ...actual, acciones: [...actual.acciones, nuevaAccion] }

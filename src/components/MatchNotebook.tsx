@@ -199,6 +199,7 @@ function MatchNotebook() {
           etiquetaId: accion.etiquetaId,
           minuto: accion.minuto,
           parte: accion.parte,
+          direccionAtaque: accion.direccionAtaque,
           x: accion.x,
           y: accion.y,
           notaLibre: accion.notaLibre,

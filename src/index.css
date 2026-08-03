@@ -8,6 +8,8 @@
   --app-muted: #aab3bc;
   --app-accent: #61a96b;
   --app-action: #4d83b5;
+  --jersey-cuerpo: #3d4750;
+  --jersey-numero: #eef3f2;
 
   --app-card-gradient: linear-gradient(145deg, #252c32 0%, #1d2328 100%);
   --app-card-border: rgba(105, 126, 145, 0.62);
@@ -67,6 +69,8 @@
   --app-muted: #5b6874;
   --app-accent: #2e7558;
   --app-action: #23577d;
+  --jersey-cuerpo: #a9b6bf;
+  --jersey-numero: #182024;
 
   --app-card-gradient: #b8cbe0;
   --app-card-border: rgba(104, 128, 150, 0.66);

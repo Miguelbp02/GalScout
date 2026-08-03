@@ -52,7 +52,7 @@ function JerseyNumberBadge({ dorsal, size = 40, className = '' }: JerseyNumberBa
           dominantBaseline="middle"
           textAnchor="middle"
           x="50"
-          y="66"
+          y="52"
         >
           {dorsal}
         </text>

@@ -481,7 +481,7 @@
 }
 
 .jersey-number-badge-cuerpo {
-  fill: #bfe6e0;
+  fill: var(--jersey-cuerpo);
 }
 
 .jersey-number-badge-hem {
@@ -516,7 +516,7 @@
 }
 
 .jersey-number-badge-numero {
-  fill: #17211f;
+  fill: var(--jersey-numero);
   font-family: 'Arial Black', Arial, Helvetica, sans-serif;
   font-size: 38px;
   font-weight: 900;

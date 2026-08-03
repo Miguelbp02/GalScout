@@ -45,21 +45,30 @@ function PlayerObservationForm({
   const { mostrarToast } = useToast()
 
   useEffect(() => {
+    let cancelado = false
+
     async function cargarCriterios() {
       setCargandoCriterios(true)
       setErrorCriterios(null)
       setPuntuaciones({})
 
       try {
-        setCriterios(await obtenerCriteriosScouting(perfilScouting))
+        const criteriosObtenidos = await obtenerCriteriosScouting(perfilScouting)
+        if (cancelado) return
+        setCriterios(criteriosObtenidos)
       } catch {
+        if (cancelado) return
         setErrorCriterios('No se han podido cargar los criterios de valoración.')
       } finally {
-        setCargandoCriterios(false)
+        if (!cancelado) setCargandoCriterios(false)
       }
     }
 
     void cargarCriterios()
+
+    return () => {
+      cancelado = true
+    }
   }, [perfilScouting])
 
   useEffect(() => {

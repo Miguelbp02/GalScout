@@ -35,10 +35,13 @@ function LoginForm() {
               <img src={logoAppOjeo} alt="Logo de Ojeo Galicia" />
             </div>
             <div>
-              <p className="app-kicker">Ojeo</p>
-              <h1 id="login-title" className="h3 mb-0">
-                Acceso privado
+              <h1 className="app-brand-title mb-1" aria-label="GalScout">
+                <span>Gal</span>
+                <span>Scout</span>
               </h1>
+              <p id="login-title" className="h3 mb-0">
+                Acceso privado
+              </p>
             </div>
           </div>
           <p className="text-body-secondary mb-3">

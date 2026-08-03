@@ -15,6 +15,7 @@ import PlayerDetailPage from './pages/PlayerDetailPage'
 import EditPlayerPage from './pages/EditPlayerPage'
 import ComparePlayersPage from './pages/ComparePlayersPage'
 import MatchScoutingPage from './pages/MatchScoutingPage'
+import SuggestionsPage from './pages/SuggestionsPage'
 import FloatingMatchPill from './components/FloatingMatchPill'
 import { crearJugador, obtenerJugadores } from './services/playerService'
 import { crearHistorialEquipo } from './services/teamHistoryService'
@@ -343,6 +344,7 @@ function App() {
         <Route path="/jugadores/nuevo" element={pantallaNuevoJugador} />
         <Route path="/comparar" element={<ComparePlayersPage />} />
         <Route path="/ojeo-partido" element={<MatchScoutingPage />} />
+        <Route path="/mejoras" element={<SuggestionsPage />} />
         <Route path="/jugadores/:jugadorId/editar" element={<EditPlayerPage />} />
         <Route path="/jugadores/:jugadorId" element={<PlayerDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

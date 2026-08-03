@@ -5,6 +5,7 @@ import UsersIcon from './UsersIcon'
 import PlusIcon from './PlusIcon'
 import ScalesIcon from './ScalesIcon'
 import BinocularsIcon from './BinocularsIcon'
+import LightbulbIcon from './LightbulbIcon'
 import ThemeToggle from './ThemeToggle'
 
 interface AppHeaderProps {
@@ -88,6 +89,13 @@ function AppHeader({
           >
             <BinocularsIcon />
             <span>Ojear partido</span>
+          </NavLink>
+          <NavLink
+            className={({ isActive }) => `app-nav-link ${isActive ? 'active' : ''}`}
+            to="/mejoras"
+          >
+            <LightbulbIcon />
+            <span>Mejoras</span>
           </NavLink>
           {herramientas}
           <ThemeToggle />

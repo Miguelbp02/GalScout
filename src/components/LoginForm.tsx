@@ -41,8 +41,14 @@ function LoginForm() {
               </h1>
             </div>
           </div>
-          <p className="text-body-secondary mb-4">
+          <p className="text-body-secondary mb-3">
             Inicia sesión con la cuenta proporcionada por el administrador.
+          </p>
+
+          <p className="alert alert-warning py-2 small mb-4" role="note">
+            Esto es un prototipo en desarrollo: los jugadores y datos que vas a ver
+            son ficticios, a modo de ejemplo. Todavía está sujeto a cambios y a
+            adaptarse a las necesidades de los usuarios.
           </p>
 
           <form onSubmit={iniciarSesion}>

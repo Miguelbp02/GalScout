@@ -253,6 +253,34 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const editarAccion = useCallback(
+    (
+      accionId: string,
+      cambios: Partial<Pick<AccionRegistrada, 'jugadorId' | 'etiquetaId' | 'etiquetaNombre' | 'minuto'>>,
+    ) => {
+      setSesion((actual) => {
+        if (!actual) return actual
+
+        return {
+          ...actual,
+          acciones: actual.acciones.map((accion) => {
+            if (accion.id !== accionId) return accion
+
+            const jugadorId = cambios.jugadorId ?? accion.jugadorId
+
+            return {
+              ...accion,
+              ...cambios,
+              jugadorId,
+              direccionAtaque: calcularDireccionAtaque(actual, jugadorId),
+            }
+          }),
+        }
+      })
+    },
+    [],
+  )
+
   const actualizarInforme = useCallback((jugadorId: string, texto: string) => {
     setSesion((actual) =>
       actual
@@ -325,6 +353,7 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
     ajustarMinuto,
     agregarAccion,
     eliminarAccion,
+    editarAccion,
     actualizarInforme,
     marcarInformeGuardado,
     cambiarPestanaActiva,

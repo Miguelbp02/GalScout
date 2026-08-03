@@ -8,7 +8,6 @@ interface ValoracionGeneralFila {
   id: string
   autor_id: string
   fecha_valoracion: string
-  puntuacion: number
   comentario: string
   created_at: string
 }
@@ -23,7 +22,7 @@ export async function obtenerValoracionesGeneralesJugador(
 ): Promise<ValoracionGeneral[]> {
   const { data, error } = await supabase
     .from('valoraciones_generales')
-    .select('id, autor_id, fecha_valoracion, puntuacion, comentario, created_at')
+    .select('id, autor_id, fecha_valoracion, comentario, created_at')
     .eq('jugador_id', jugadorId)
     .order('fecha_valoracion', { ascending: false })
     .order('created_at', { ascending: false })
@@ -55,7 +54,6 @@ export async function obtenerValoracionesGeneralesJugador(
   return filas.map((valoracion) => ({
     id: valoracion.id,
     fechaValoracion: valoracion.fecha_valoracion,
-    puntuacion: valoracion.puntuacion,
     comentario: valoracion.comentario,
     createdAt: valoracion.created_at,
     autorNombre: nombresPorAutor.get(valoracion.autor_id) ?? 'Ojeador sin perfil',
@@ -69,7 +67,6 @@ export async function crearValoracionGeneral(
   const { error } = await supabase.from('valoraciones_generales').insert({
     jugador_id: jugadorId,
     fecha_valoracion: valoracion.fechaValoracion,
-    puntuacion: valoracion.puntuacion,
     comentario: valoracion.comentario.trim(),
   })
 

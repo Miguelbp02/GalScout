@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import HistoryListSkeleton from './HistoryListSkeleton'
 import TrashIcon from './TrashIcon'
+import { obtenerTemporadasRecientes } from '../constants/temporadas'
 import type { HistorialEquipoJugador } from '../types/historialEquipo'
+
+const TEMPORADA_ACTUAL = obtenerTemporadasRecientes()[0]
 
 interface TeamHistoryListProps {
   cargando: boolean
@@ -135,16 +138,16 @@ function TeamHistoryList({
                 )}
                 <span>
                   <strong>{etapa.equipoNombre}</strong>
-                  {etapa.temporada && (
-                    <span className="small text-body-secondary ms-3">
-                      {etapa.temporada}
-                    </span>
-                  )}
                   {etapa.esActual && (
                     <span className="badge text-bg-success ms-3">Actual</span>
                   )}
                 </span>
                 <span className="d-flex align-items-center gap-3">
+                  {(etapa.temporada || etapa.esActual) && (
+                    <span className="small text-body-secondary">
+                      {etapa.temporada || TEMPORADA_ACTUAL}
+                    </span>
+                  )}
                   {(etapa.goles !== null || etapa.partidos !== null) && (
                     <span className="small text-body-secondary">
                       {etapa.goles !== null && `${etapa.goles} goles`}
@@ -158,6 +161,18 @@ function TeamHistoryList({
                 </span>
               </summary>
               <div className="general-rating-content">
+                {(etapa.categoria || etapa.liga || etapa.grupoProvincia || etapa.dorsal !== null) && (
+                  <p className="small text-body-secondary mb-2">
+                    {[
+                      etapa.categoria,
+                      etapa.liga,
+                      etapa.grupoProvincia,
+                      etapa.dorsal !== null ? `Dorsal ${etapa.dorsal}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                )}
                 {etapa.notas ? (
                   <p className="mb-0 observation-notes">{etapa.notas}</p>
                 ) : (

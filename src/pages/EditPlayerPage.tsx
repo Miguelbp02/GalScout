@@ -10,21 +10,32 @@ import {
   eliminarJugador,
   obtenerJugadorPorId,
 } from '../services/playerService'
-import { crearHistorialEquipo } from '../services/teamHistoryService'
+import {
+  actualizarHistorialEquipo,
+  crearHistorialEquipo,
+  desmarcarEquipoActualJugador,
+  obtenerHistorialEquiposJugador,
+} from '../services/teamHistoryService'
+import { obtenerTemporadasRecientes } from '../constants/temporadas'
 import type { Jugador, NuevoJugador } from '../types/jugador'
-import type { NuevoHistorialEquipo } from '../types/historialEquipo'
+import type { HistorialEquipoJugador, NuevoHistorialEquipo } from '../types/historialEquipo'
 
 type PestanaEdicion = 'datos' | 'historial'
+
+const TEMPORADA_ACTUAL = obtenerTemporadasRecientes()[0]
 
 function EditPlayerPage() {
   const { jugadorId } = useParams()
   const navigate = useNavigate()
   const [jugador, setJugador] = useState<Jugador | null>(null)
   const [jugadorInicial, setJugadorInicial] = useState<NuevoJugador | null>(null)
+  const [historial, setHistorial] = useState<HistorialEquipoJugador[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [eliminando, setEliminando] = useState(false)
   const [pestanaEdicion, setPestanaEdicion] = useState<PestanaEdicion>('datos')
+
+  const etapaActual = historial.find((etapa) => etapa.esActual) ?? null
 
   useEffect(() => {
     const id = jugadorId ?? ''
@@ -35,9 +46,10 @@ function EditPlayerPage() {
       setError(null)
 
       try {
-        const [jugadorObtenido, perfilPosicional] = await Promise.all([
+        const [jugadorObtenido, perfilPosicional, historialObtenido] = await Promise.all([
           obtenerJugadorPorId(id),
           obtenerPerfilPosicionalJugador(id),
+          obtenerHistorialEquiposJugador(id),
         ])
 
         if (!jugadorObtenido) {
@@ -46,6 +58,7 @@ function EditPlayerPage() {
         }
 
         setJugador(jugadorObtenido)
+        setHistorial(historialObtenido)
         setJugadorInicial({
           nombre: jugadorObtenido.nombre,
           edad: jugadorObtenido.edad,
@@ -71,13 +84,41 @@ function EditPlayerPage() {
     if (!jugadorId) return
 
     await actualizarJugador(jugadorId, datosJugador)
+
+    if (datosJugador.estado === 'Libre') {
+      if (etapaActual) {
+        await desmarcarEquipoActualJugador(jugadorId)
+      }
+    } else if (!etapaActual && datosJugador.equipoActual.trim()) {
+      await crearHistorialEquipo(jugadorId, {
+        nombreEquipo: datosJugador.equipoActual,
+        temporada: TEMPORADA_ACTUAL,
+        categoria: datosJugador.categoria,
+        liga: '',
+        grupoProvincia: '',
+        dorsal: null,
+        goles: null,
+        partidos: null,
+        notas: '',
+        marcarComoActual: true,
+      })
+    }
+
     navigate(`/jugadores/${jugadorId}`)
   }
 
-  async function añadirHistorialEquipo(historial: NuevoHistorialEquipo) {
+  async function añadirHistorialEquipo(historialNuevo: NuevoHistorialEquipo) {
     if (!jugadorId) return
 
-    await crearHistorialEquipo(jugadorId, historial)
+    await crearHistorialEquipo(jugadorId, historialNuevo)
+    setHistorial(await obtenerHistorialEquiposJugador(jugadorId))
+  }
+
+  async function actualizarEtapaHistorial(id: string, historialNuevo: NuevoHistorialEquipo) {
+    if (!jugadorId) return
+
+    await actualizarHistorialEquipo(id, jugadorId, historialNuevo)
+    setHistorial(await obtenerHistorialEquiposJugador(jugadorId))
   }
 
   async function eliminarJugadorActual() {
@@ -161,6 +202,14 @@ function EditPlayerPage() {
 
               {pestanaEdicion === 'datos' && (
                 <PlayerForm
+                  equipoActualBloqueado={Boolean(etapaActual)}
+                  equipoActualEtiqueta={
+                    etapaActual
+                      ? `${etapaActual.equipoNombre}${
+                          etapaActual.temporada ? ` · ${etapaActual.temporada}` : ''
+                        }`
+                      : null
+                  }
                   jugadorInicial={jugadorInicial}
                   modo="editar"
                   sinTarjeta
@@ -174,10 +223,17 @@ function EditPlayerPage() {
                   <h2 className="h5 mb-2">Añadir al historial deportivo</h2>
                   <p className="text-body-secondary small mb-4">
                     Registra una nueva etapa del jugador por equipo y temporada, con
-                    goles y partidos cuando se conozcan. Podrás consultar el historial
-                    completo desde la ficha del jugador.
+                    categoría, liga, dorsal, goles y partidos cuando se conozcan. Si
+                    eliges una temporada que ya tiene una etapa guardada, se rellenará
+                    con esos datos y al guardar se actualizará en vez de crear otra.
+                    Podrás consultar el historial completo desde la ficha del
+                    jugador.
                   </p>
-                  <TeamHistoryForm onCrearHistorial={añadirHistorialEquipo} />
+                  <TeamHistoryForm
+                    historial={historial}
+                    onActualizarHistorial={actualizarEtapaHistorial}
+                    onCrearHistorial={añadirHistorialEquipo}
+                  />
                 </section>
               )}
             </div>

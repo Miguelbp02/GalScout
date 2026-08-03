@@ -21,6 +21,7 @@ export interface Jugador extends DatosJugador {
   posicionesNaturalesIds: number[]
   posicionesAptasIds: number[]
   totalInformes: number
+  dorsalActual: number | null
 }
 
 export interface NuevoJugador {

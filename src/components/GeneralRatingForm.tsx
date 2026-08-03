@@ -12,7 +12,6 @@ function obtenerFechaActual() {
 
 function GeneralRatingForm({ onCrearValoracion }: GeneralRatingFormProps) {
   const [fechaValoracion, setFechaValoracion] = useState(obtenerFechaActual)
-  const [puntuacion, setPuntuacion] = useState('')
   const [comentario, setComentario] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
@@ -21,26 +20,19 @@ function GeneralRatingForm({ onCrearValoracion }: GeneralRatingFormProps) {
   async function enviarFormulario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
 
-    if (puntuacion === '') {
-      setError('Indica una puntuación general entre 0 y 20.')
-      return
-    }
-
     setError(null)
     setGuardando(true)
 
     try {
       await onCrearValoracion({
         fechaValoracion,
-        puntuacion: Number(puntuacion),
         comentario,
       })
       setFechaValoracion(obtenerFechaActual())
-      setPuntuacion('')
       setComentario('')
-      mostrarToast('Valoración general guardada')
+      mostrarToast('Informe general guardado')
     } catch {
-      setError('No se ha podido guardar la valoración general.')
+      setError('No se ha podido guardar el informe general.')
     } finally {
       setGuardando(false)
     }
@@ -64,35 +56,16 @@ function GeneralRatingForm({ onCrearValoracion }: GeneralRatingFormProps) {
           />
         </div>
 
-        <div className="col-12 col-md-4">
-          <label className="form-label" htmlFor="puntuacion-general">
-            Puntuación general (0-20)
-          </label>
-          <input
-            className="form-control"
-            disabled={guardando}
-            id="puntuacion-general"
-            max={20}
-            min={0}
-            placeholder="Ej. 14"
-            required
-            step={1}
-            type="number"
-            value={puntuacion}
-            onChange={(evento) => setPuntuacion(evento.target.value)}
-          />
-        </div>
-
         <div className="col-12">
           <label className="form-label" htmlFor="comentario-general">
-            Comentario de síntesis
+            Informe general
           </label>
           <textarea
             className="form-control"
             disabled={guardando}
             id="comentario-general"
-            placeholder="Resume la impresión global del jugador."
-            rows={3}
+            placeholder="Escribe con calma el informe general del jugador: lo que has visto, cómo evoluciona, puntos fuertes y débiles, contexto que te parezca relevante..."
+            rows={6}
             value={comentario}
             onChange={(evento) => setComentario(evento.target.value)}
           />
@@ -106,7 +79,7 @@ function GeneralRatingForm({ onCrearValoracion }: GeneralRatingFormProps) {
       )}
 
       <button className="btn btn-primary mt-3" disabled={guardando} type="submit">
-        {guardando ? 'Guardando…' : 'Guardar valoración general'}
+        {guardando ? 'Guardando…' : 'Guardar informe general'}
       </button>
     </form>
   )

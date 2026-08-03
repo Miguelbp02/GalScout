@@ -274,7 +274,6 @@ const styles = StyleSheet.create({
     paddingLeft: 9,
   },
   valoracionCabecera: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
-  valoracionPuntuacion: { color: COLORES.verde, fontFamily: 'Helvetica-Bold', fontSize: 11 },
   vacio: { color: COLORES.tenue, fontSize: 8, fontStyle: 'italic' },
   pieFondo: {
     backgroundColor: '#cbdbe7',
@@ -686,7 +685,6 @@ function ValoracionPdfItem({ valoracion }: { valoracion: ValoracionGeneral }) {
     <View style={styles.valoracion} wrap={false}>
       <View style={styles.valoracionCabecera}>
         <Text style={styles.observacionFecha}>{formatearFecha(valoracion.fechaValoracion)} - {valoracion.autorNombre}</Text>
-        <Text style={styles.valoracionPuntuacion}>{valoracion.puntuacion} / 20</Text>
       </View>
       <Text style={styles.observacionNotas}>{valoracion.comentario || 'Sin comentario.'}</Text>
     </View>
@@ -698,8 +696,8 @@ function ValoracionesPdf({ valoraciones }: { valoraciones: ValoracionGeneral[] }
   return (
     <View style={styles.seccion}>
       <View wrap={false}>
-        <Text style={styles.seccionTitulo}>Valoraciones generales</Text>
-        <Text style={styles.seccionAyuda}>{valoraciones.length} valoraciones incorporadas al documento.</Text>
+        <Text style={styles.seccionTitulo}>Informes generales</Text>
+        <Text style={styles.seccionAyuda}>{valoraciones.length} informes incorporados al documento.</Text>
         <ValoracionPdfItem valoracion={primera} />
       </View>
       {resto.map((valoracion) => (

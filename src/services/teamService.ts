@@ -5,11 +5,6 @@ export interface Equipo {
   nombre: string
 }
 
-interface EquipoActualFila {
-  id: string
-  equipo_id: string
-}
-
 export async function obtenerEquipos(): Promise<Equipo[]> {
   const { data, error } = await supabase
     .from('equipos')
@@ -63,65 +58,25 @@ export async function obtenerOCrearEquipo(nombre: string): Promise<Equipo> {
   throw new Error(errorCreacion?.message ?? 'No se ha podido guardar el equipo.')
 }
 
-export async function guardarEquipoActualJugador(
-  jugadorId: string,
-  nombreEquipo: string,
-  estadoJugador: 'En equipo' | 'Libre',
-): Promise<void> {
-  const nombreLimpio = nombreEquipo.trim().toLocaleUpperCase('es-ES')
-  const { data: equipoActual, error: errorEquipoActual } = await supabase
-    .from('jugadores_equipos')
-    .select('id, equipo_id')
-    .eq('jugador_id', jugadorId)
-    .eq('es_actual', true)
-    .maybeSingle()
-
-  if (errorEquipoActual) throw new Error(errorEquipoActual.message)
-
-  if (estadoJugador === 'Libre' || !nombreLimpio) {
-    if (!equipoActual) return
-
-    const { error } = await supabase
-      .from('jugadores_equipos')
-      .update({ es_actual: false })
-      .eq('id', (equipoActual as EquipoActualFila).id)
-
-    if (error) throw new Error(error.message)
-    return
-  }
-
-  const equipo = await obtenerOCrearEquipo(nombreLimpio)
-
-  if ((equipoActual as EquipoActualFila | null)?.equipo_id === equipo.id) return
-
-  if (equipoActual) {
-    const { error } = await supabase
-      .from('jugadores_equipos')
-      .update({ es_actual: false })
-      .eq('id', (equipoActual as EquipoActualFila).id)
-
-    if (error) throw new Error(error.message)
-  }
-
-  const { error: errorAsignacion } = await supabase
-    .from('jugadores_equipos')
-    .insert({ jugador_id: jugadorId, equipo_id: equipo.id, es_actual: true })
-
-  if (errorAsignacion) throw new Error(errorAsignacion.message)
+export interface EquipoActualJugador {
+  nombre: string
+  dorsal: number | null
 }
 
 export async function obtenerEquipoActualJugador(
   jugadorId: string,
-): Promise<string | null> {
+): Promise<EquipoActualJugador | null> {
   const { data, error } = await supabase
     .from('jugadores_equipos')
-    .select('equipos(nombre)')
+    .select('dorsal, equipos(nombre)')
     .eq('jugador_id', jugadorId)
     .eq('es_actual', true)
     .maybeSingle()
 
   if (error) throw new Error(error.message)
 
-  const equipo = (data as { equipos: { nombre: string } | null } | null)?.equipos
-  return equipo?.nombre ?? null
+  const fila = data as { dorsal: number | null; equipos: { nombre: string } | null } | null
+  if (!fila?.equipos) return null
+
+  return { nombre: fila.equipos.nombre, dorsal: fila.dorsal }
 }

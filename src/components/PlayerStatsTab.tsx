@@ -22,8 +22,8 @@ interface PlayerStatsTabProps {
 }
 
 const VISTAS: { clave: VistaEstadisticas; etiqueta: string }[] = [
-  { clave: 'resumen', etiqueta: 'Resumen' },
   { clave: 'zonas', etiqueta: 'Zonas' },
+  { clave: 'resumen', etiqueta: 'Resumen' },
   { clave: 'tiempo', etiqueta: 'Tiempo' },
   { clave: 'partidos', etiqueta: 'Partidos' },
 ]
@@ -44,7 +44,7 @@ function PlayerStatsTab({ observaciones, perfilScouting }: PlayerStatsTabProps) 
   } = useEstadisticasJugador(observaciones)
 
   const [modo, setModo] = useState<ModoFiltro>('todos')
-  const [vista, setVista] = useState<VistaEstadisticas>('resumen')
+  const [vista, setVista] = useState<VistaEstadisticas>('zonas')
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
 
   // Se cargan de golpe las acciones de TODOS los partidos y el filtrado se hace

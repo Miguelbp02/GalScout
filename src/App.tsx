@@ -18,6 +18,7 @@ import MatchScoutingPage from './pages/MatchScoutingPage'
 import FloatingMatchPill from './components/FloatingMatchPill'
 import { crearJugador, obtenerJugadores } from './services/playerService'
 import { crearHistorialEquipo } from './services/teamHistoryService'
+import { obtenerTemporadasRecientes } from './constants/temporadas'
 import type { Jugador, NuevoJugador } from './types/jugador'
 import type { NuevoHistorialEquipo } from './types/historialEquipo'
 import {
@@ -92,9 +93,30 @@ function App() {
   ) {
     const jugadorCreado = await crearJugador(nuevoJugador)
 
-    await Promise.all(
-      historialPendiente.map((historial) => crearHistorialEquipo(jugadorCreado.id, historial)),
-    )
+    for (const historial of historialPendiente) {
+      await crearHistorialEquipo(jugadorCreado.id, historial)
+    }
+
+    const yaHayEtapaActual = historialPendiente.some((historial) => historial.marcarComoActual)
+
+    if (
+      !yaHayEtapaActual &&
+      nuevoJugador.estado === 'En equipo' &&
+      nuevoJugador.equipoActual.trim()
+    ) {
+      await crearHistorialEquipo(jugadorCreado.id, {
+        nombreEquipo: nuevoJugador.equipoActual,
+        temporada: obtenerTemporadasRecientes()[0],
+        categoria: nuevoJugador.categoria,
+        liga: '',
+        grupoProvincia: '',
+        dorsal: null,
+        goles: null,
+        partidos: null,
+        notas: '',
+        marcarComoActual: true,
+      })
+    }
 
     setJugadores((jugadoresActuales) => [jugadorCreado, ...jugadoresActuales])
     setHistorialNuevoJugador([])

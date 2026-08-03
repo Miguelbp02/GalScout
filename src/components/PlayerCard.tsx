@@ -1,5 +1,6 @@
 import playerPlaceholder from '../assets/player-placeholder.png'
 import { Link } from 'react-router-dom'
+import JerseyNumberBadge from './JerseyNumberBadge'
 import { obtenerAbreviaturaPosicion } from '../constants/positionAbbreviations'
 import type { Jugador } from '../types/jugador'
 import type { Posicion } from '../types/posicion'
@@ -73,30 +74,33 @@ function PlayerCard({ jugador, posiciones }: PlayerCardProps) {
           </div>
 
           <div className="player-card-position">
-            <span className="player-card-position-label">Posiciones</span>
-            <div className="player-card-position-tags">
-              {posicionesNaturales.map((posicion) => (
-                <span
-                  className="player-card-position-tag player-card-position-tag--natural"
-                  key={`natural-${posicion.id}`}
-                  title={`Natural: ${posicion.nombre}`}
-                >
-                  {obtenerAbreviaturaPosicion(posicion.codigo)}
-                </span>
-              ))}
-              {posicionesAptas.map((posicion) => (
-                <span
-                  className="player-card-position-tag player-card-position-tag--apta"
-                  key={`apta-${posicion.id}`}
-                  title={`Apta: ${posicion.nombre}`}
-                >
-                  {obtenerAbreviaturaPosicion(posicion.codigo)}
-                </span>
-              ))}
-              {posicionesNaturales.length === 0 && posicionesAptas.length === 0 && (
-                <span className="player-card-position-empty">Sin indicar</span>
-              )}
+            <div className="player-card-position-info">
+              <span className="player-card-position-label">Posiciones</span>
+              <div className="player-card-position-tags">
+                {posicionesNaturales.map((posicion) => (
+                  <span
+                    className="player-card-position-tag player-card-position-tag--natural"
+                    key={`natural-${posicion.id}`}
+                    title={`Natural: ${posicion.nombre}`}
+                  >
+                    {obtenerAbreviaturaPosicion(posicion.codigo)}
+                  </span>
+                ))}
+                {posicionesAptas.map((posicion) => (
+                  <span
+                    className="player-card-position-tag player-card-position-tag--apta"
+                    key={`apta-${posicion.id}`}
+                    title={`Apta: ${posicion.nombre}`}
+                  >
+                    {obtenerAbreviaturaPosicion(posicion.codigo)}
+                  </span>
+                ))}
+                {posicionesNaturales.length === 0 && posicionesAptas.length === 0 && (
+                  <span className="player-card-position-empty">Sin indicar</span>
+                )}
+              </div>
             </div>
+            <JerseyNumberBadge dorsal={jugador.dorsalActual} size={44} />
           </div>
 
           <div className="player-card-footer">

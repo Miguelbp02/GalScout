@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { obtenerEtiquetasAccion } from '../services/actionTagService'
 import PitchOutlineSvg, { ALTO_CAMPO, ANCHO_CAMPO } from './PitchOutlineSvg'
 import { useMatchSession } from './MatchSessionContext'
-import type { EtiquetaAccion } from '../types/accionObservacion'
+import type { CategoriaEtiquetaAccion, EtiquetaAccion } from '../types/accionObservacion'
 import type { EquipoSesion, JugadorSeguido } from '../types/matchSession'
 
 const CONSULTA_MOVIL = '(max-width: 900px)'
@@ -229,19 +229,30 @@ function MatchPitchCapture({ onSelectorAbiertoChange }: MatchPitchCaptureProps) 
         : `¿Quién ha hecho "${etiquetaElegida.nombre}"?`
 
   function renderEtiquetas(lista: EtiquetaAccion[], claseExtra = '') {
+    const filas: CategoriaEtiquetaAccion[] = ['positiva', 'neutra', 'negativa']
+
     return (
       <div className={`match-tag-grid ${claseExtra}`}>
-        {lista.map((etiqueta) => (
-          <button
-            className={`match-tag-chip match-tag-chip--${etiqueta.categoria}`}
-            disabled={!toque}
-            key={etiqueta.id}
-            type="button"
-            onClick={() => elegirEtiqueta(etiqueta)}
-          >
-            {etiqueta.nombre}
-          </button>
-        ))}
+        {filas.map((categoria) => {
+          const etiquetasFila = lista.filter((etiqueta) => etiqueta.categoria === categoria)
+          if (etiquetasFila.length === 0) return null
+
+          return (
+            <div className="match-tag-fila" key={categoria}>
+              {etiquetasFila.map((etiqueta) => (
+                <button
+                  className={`match-tag-chip match-tag-chip--${etiqueta.categoria}`}
+                  disabled={!toque}
+                  key={etiqueta.id}
+                  type="button"
+                  onClick={() => elegirEtiqueta(etiqueta)}
+                >
+                  {etiqueta.nombre}
+                </button>
+              ))}
+            </div>
+          )
+        })}
       </div>
     )
   }

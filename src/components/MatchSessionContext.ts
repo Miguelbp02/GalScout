@@ -30,6 +30,10 @@ export interface MatchSessionContextValue {
   ajustarMinuto: (minuto: number) => void
   agregarAccion: (accion: Omit<AccionRegistrada, 'id' | 'parte' | 'direccionAtaque'>) => void
   eliminarAccion: (accionId: string) => void
+  editarAccion: (
+    accionId: string,
+    cambios: Partial<Pick<AccionRegistrada, 'jugadorId' | 'etiquetaId' | 'etiquetaNombre' | 'minuto'>>,
+  ) => void
   actualizarInforme: (jugadorId: string, texto: string) => void
   marcarInformeGuardado: (jugadorId: string) => void
   cambiarPestanaActiva: (jugadorId: string) => void

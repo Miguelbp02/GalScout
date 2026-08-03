@@ -1,7 +1,6 @@
 export interface ValoracionGeneral {
   id: string
   fechaValoracion: string
-  puntuacion: number
   comentario: string
   createdAt: string
   autorNombre: string
@@ -9,6 +8,5 @@ export interface ValoracionGeneral {
 
 export interface NuevaValoracionGeneral {
   fechaValoracion: string
-  puntuacion: number
   comentario: string
 }

@@ -413,8 +413,8 @@ function PlayerExportTab({
       <section className="player-export-section">
         <div className="player-export-section-header">
           <div>
-            <h3 className="h6 mb-1">5. Valoraciones generales</h3>
-            <p className="small text-body-secondary mb-0">Estas valoraciones están pensadas como conclusión del informe.</p>
+            <h3 className="h6 mb-1">5. Informes generales</h3>
+            <p className="small text-body-secondary mb-0">Estos informes están pensados como conclusión del informe.</p>
           </div>
           <div className="d-flex gap-2">
             <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => setIdsValoraciones(new Set(valoracionesGenerales.map((valoracion) => valoracion.id)))}>Todas</button>
@@ -422,7 +422,7 @@ function PlayerExportTab({
           </div>
         </div>
         <div className="player-export-record-list">
-          {valoracionesGenerales.length === 0 && <p className="player-stats-bloque-vacio mb-0">No hay valoraciones generales disponibles.</p>}
+          {valoracionesGenerales.length === 0 && <p className="player-stats-bloque-vacio mb-0">No hay informes generales disponibles.</p>}
           {valoracionesGenerales.map((valoracion) => (
             <label className="player-export-record" key={valoracion.id}>
               <input checked={idsValoraciones.has(valoracion.id)} type="checkbox" onChange={() => alternarEnSet(setIdsValoraciones, valoracion.id)} />
@@ -430,7 +430,6 @@ function PlayerExportTab({
                 <strong>{formatearFecha(valoracion.fechaValoracion)}</strong>
                 <small>{valoracion.autorNombre}</small>
               </span>
-              <span className="general-rating-score">{valoracion.puntuacion} / 20</span>
               <span className="player-export-record-preview">{valoracion.comentario || 'Sin comentario'}</span>
             </label>
           ))}

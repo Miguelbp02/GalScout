@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import CriteriaRatingsInput from './CriteriaRatingsInput'
 import MatchAddPlayerForm from './MatchAddPlayerForm'
+import PencilIcon from './PencilIcon'
 import TrashIcon from './TrashIcon'
 import { useMatchSession } from './MatchSessionContext'
 import { useToast } from './ToastContext'
+import { obtenerEtiquetasAccion } from '../services/actionTagService'
 import { obtenerCriteriosScouting } from '../services/criteriaService'
 import {
   crearAccionesObservacion,
   crearObservacionJugador,
 } from '../services/observationService'
 import type { CriterioScouting, PerfilScouting } from '../types/criterio'
+import type { EtiquetaAccion } from '../types/accionObservacion'
+import type { AccionRegistrada, JugadorSeguido } from '../types/matchSession'
 
 function obtenerFechaActual() {
   return new Date().toISOString().slice(0, 10)
@@ -36,6 +40,7 @@ function MatchNotebook() {
     sesion,
     actualizarInforme,
     eliminarAccion,
+    editarAccion,
     marcarInformeGuardado,
     cambiarPestanaActiva,
     actualizarPuntuacionJugador,
@@ -55,6 +60,28 @@ function MatchNotebook() {
   const [pestanaNuevaActivaId, setPestanaNuevaActivaId] = useState<string | null>(null)
   const [jugadorArrastradoId, setJugadorArrastradoId] = useState<string | null>(null)
   const [jugadorDestinoId, setJugadorDestinoId] = useState<string | null>(null)
+  const [etiquetasDisponibles, setEtiquetasDisponibles] = useState<EtiquetaAccion[]>([])
+  const [accionEditandoId, setAccionEditandoId] = useState<string | null>(null)
+  const [formEdicionAccion, setFormEdicionAccion] = useState<{
+    jugadorId: string
+    etiquetaId: number
+    minuto: number
+  } | null>(null)
+
+  useEffect(() => {
+    Promise.all([obtenerEtiquetasAccion('campo'), obtenerEtiquetasAccion('portero')])
+      .then(([campo, portero]) => {
+        const combinadas = [...campo, ...portero].filter(
+          (etiqueta) => !etiqueta.esSustitucion,
+        )
+        const sinDuplicados = combinadas.filter(
+          (etiqueta, indice) =>
+            combinadas.findIndex((otra) => otra.id === etiqueta.id) === indice,
+        )
+        setEtiquetasDisponibles(sinDuplicados)
+      })
+      .catch(() => {})
+  }, [])
 
   const jugadorActivo = sesion?.jugadores.find(
     (jugador) => jugador.id === sesion.pestanaActiva,
@@ -163,56 +190,139 @@ function MatchNotebook() {
     }
   }
 
-  async function guardarInforme() {
-    const jugador = jugadorActivo!
+  async function guardarInformeDe(jugador: JugadorSeguido) {
     const equipoJugador =
       jugador.equipo === 'A' ? sesion!.nombreEquipoA : sesion!.nombreEquipoB
     const equipoRival =
       jugador.equipo === 'A' ? sesion!.nombreEquipoB : sesion!.nombreEquipoA
+    const textoInformeJugador = sesion!.informesPorJugador[jugador.id] ?? ''
+    const accionesJugador = sesion!.acciones.filter(
+      (accion) => accion.jugadorId === jugador.id,
+    )
+    const puntuacionesJugador = sesion!.puntuacionesPorJugador[jugador.id] ?? {}
+
+    const valoraciones = Object.entries(puntuacionesJugador).flatMap(
+      ([criterioId, valor]) => {
+        const texto = valor.trim()
+        if (!texto) return []
+        return [{ criterioId: Number(criterioId), puntuacion: Number(texto) }]
+      },
+    )
+
+    const observacionId = await crearObservacionJugador(jugador.id, {
+      tipo: 'partido',
+      fechaObservacion: obtenerFechaActual(),
+      notas: textoInformeJugador.trim() || 'Sin notas adicionales.',
+      equipoJugador,
+      equipoRival,
+      competicion: sesion!.competicion,
+      jornada: sesion!.jornada,
+      valoraciones,
+    })
+
+    await crearAccionesObservacion(
+      observacionId,
+      accionesJugador.map((accion) => ({
+        etiquetaId: accion.etiquetaId,
+        minuto: accion.minuto,
+        parte: accion.parte,
+        direccionAtaque: accion.direccionAtaque,
+        x: accion.x,
+        y: accion.y,
+        notaLibre: accion.notaLibre,
+      })),
+    )
+
+    marcarInformeGuardado(jugador.id)
+  }
+
+  async function guardarInforme() {
+    const jugador = jugadorActivo!
 
     setErrorGuardado(null)
     setGuardandoJugadorId(jugador.id)
 
     try {
-      const valoraciones = Object.entries(puntuacionesActivas).flatMap(
-        ([criterioId, valor]) => {
-          const texto = valor.trim()
-          if (!texto) return []
-          return [{ criterioId: Number(criterioId), puntuacion: Number(texto) }]
-        },
-      )
-
-      const observacionId = await crearObservacionJugador(jugador.id, {
-        tipo: 'partido',
-        fechaObservacion: obtenerFechaActual(),
-        notas: textoInforme.trim() || 'Sin notas adicionales.',
-        equipoJugador,
-        equipoRival,
-        competicion: sesion!.competicion,
-        jornada: sesion!.jornada,
-        valoraciones,
-      })
-
-      await crearAccionesObservacion(
-        observacionId,
-        accionesDelJugador.map((accion) => ({
-          etiquetaId: accion.etiquetaId,
-          minuto: accion.minuto,
-          parte: accion.parte,
-          direccionAtaque: accion.direccionAtaque,
-          x: accion.x,
-          y: accion.y,
-          notaLibre: accion.notaLibre,
-        })),
-      )
-
-      marcarInformeGuardado(jugador.id)
+      await guardarInformeDe(jugador)
       mostrarToast(`Informe de ${jugador.nombre} guardado`)
     } catch {
       setErrorGuardado('No se ha podido guardar el informe. Inténtalo de nuevo.')
     } finally {
       setGuardandoJugadorId(null)
     }
+  }
+
+  async function guardarTodosLosInformes() {
+    const pendientes = sesion!.jugadores.filter(
+      (jugador) => !sesion!.jugadoresGuardados.includes(jugador.id),
+    )
+    if (pendientes.length === 0) return
+
+    setErrorGuardado(null)
+    setGuardandoJugadorId('todos')
+
+    try {
+      for (const jugador of pendientes) {
+        await guardarInformeDe(jugador)
+      }
+      mostrarToast(
+        pendientes.length === 1
+          ? `Informe de ${pendientes[0].nombre} guardado`
+          : `${pendientes.length} informes guardados`,
+      )
+    } catch {
+      setErrorGuardado('No se han podido guardar todos los informes. Inténtalo de nuevo.')
+    } finally {
+      setGuardandoJugadorId(null)
+    }
+  }
+
+  async function confirmarGuardarTodos() {
+    const pendientes = sesion!.jugadores.filter(
+      (jugador) => !sesion!.jugadoresGuardados.includes(jugador.id),
+    )
+    if (pendientes.length === 0) return
+
+    const confirmado = window.confirm(
+      pendientes.length === 1
+        ? `¿Guardar el informe de ${pendientes[0].nombre}?`
+        : `¿Guardar los informes de los ${pendientes.length} jugadores pendientes (${pendientes
+            .map((jugador) => jugador.nombre)
+            .join(', ')})?`,
+    )
+    if (!confirmado) return
+
+    await guardarTodosLosInformes()
+  }
+
+  function abrirEdicionAccion(accion: AccionRegistrada) {
+    setAccionEditandoId(accion.id)
+    setFormEdicionAccion({
+      jugadorId: accion.jugadorId,
+      etiquetaId: accion.etiquetaId,
+      minuto: accion.minuto,
+    })
+  }
+
+  function cerrarEdicionAccion() {
+    setAccionEditandoId(null)
+    setFormEdicionAccion(null)
+  }
+
+  function guardarEdicionAccion() {
+    if (!accionEditandoId || !formEdicionAccion) return
+
+    const etiqueta = etiquetasDisponibles.find(
+      (item) => item.id === formEdicionAccion.etiquetaId,
+    )
+
+    editarAccion(accionEditandoId, {
+      jugadorId: formEdicionAccion.jugadorId,
+      etiquetaId: formEdicionAccion.etiquetaId,
+      etiquetaNombre: etiqueta?.nombre ?? '',
+      minuto: formEdicionAccion.minuto,
+    })
+    cerrarEdicionAccion()
   }
 
   function cerrarSeguimientoJugador(jugadorId: string, nombre: string) {
@@ -280,6 +390,7 @@ function MatchNotebook() {
   }
 
   return (
+    <>
     <div className="match-notebook">
       <div className="match-notebook-tabs">
         {sesion.jugadores.map((jugador) => (
@@ -443,6 +554,34 @@ function MatchNotebook() {
                   ))}
                 </div>
               </details>
+
+              <div className="match-editor-toolbar-guardar">
+                <button
+                  className="btn btn-primary btn-sm"
+                  disabled={guardandoJugadorId !== null}
+                  type="button"
+                  onClick={() => void guardarInforme()}
+                >
+                  {guardandoJugadorId === jugadorActivo.id
+                    ? 'Guardando…'
+                    : `Guardar informe de ${jugadorActivo.nombre}`}
+                </button>
+                {sesion.jugadores.length > 1 && (
+                  <button
+                    className="btn btn-outline-primary btn-sm"
+                    disabled={
+                      guardandoJugadorId !== null ||
+                      sesion.jugadores.every((jugador) =>
+                        sesion.jugadoresGuardados.includes(jugador.id),
+                      )
+                    }
+                    type="button"
+                    onClick={() => void confirmarGuardarTodos()}
+                  >
+                    {guardandoJugadorId === 'todos' ? 'Guardando todos…' : 'Guardar todos'}
+                  </button>
+                )}
+              </div>
             </div>
 
             <textarea
@@ -476,17 +615,6 @@ function MatchNotebook() {
                 {errorGuardado}
               </p>
             )}
-
-            <button
-              className="btn btn-primary align-self-end"
-              disabled={guardandoJugadorId === jugadorActivo.id}
-              type="button"
-              onClick={() => void guardarInforme()}
-            >
-              {guardandoJugadorId === jugadorActivo.id
-                ? 'Guardando…'
-                : `Guardar informe de ${jugadorActivo.nombre}`}
-            </button>
           </>
         )}
 
@@ -518,15 +646,28 @@ function MatchNotebook() {
                       {accion.minuto}&apos; {accion.etiquetaNombre} ·{' '}
                       {jugador?.nombre ?? 'Jugador'}
                     </span>
-                    <button
-                      aria-label={`Eliminar acción del minuto ${accion.minuto}`}
-                      className="match-accion-borrar"
-                      title="Eliminar acción"
-                      type="button"
-                      onClick={() => eliminarAccion(accion.id)}
-                    >
-                      <TrashIcon size={15} />
-                    </button>
+                    <span className="match-accion-log-botones">
+                      {!accion.esSustitucion && (
+                        <button
+                          aria-label={`Editar acción del minuto ${accion.minuto}`}
+                          className="match-accion-editar"
+                          title="Editar acción"
+                          type="button"
+                          onClick={() => abrirEdicionAccion(accion)}
+                        >
+                          <PencilIcon size={15} />
+                        </button>
+                      )}
+                      <button
+                        aria-label={`Eliminar acción del minuto ${accion.minuto}`}
+                        className="match-accion-borrar"
+                        title="Eliminar acción"
+                        type="button"
+                        onClick={() => eliminarAccion(accion.id)}
+                      >
+                        <TrashIcon size={15} />
+                      </button>
+                    </span>
                   </div>
                 )
               })}
@@ -541,6 +682,102 @@ function MatchNotebook() {
         )}
       </div>
     </div>
+
+    {accionEditandoId && formEdicionAccion && (
+      <div
+        aria-labelledby="match-editar-accion-titulo"
+        aria-modal="true"
+        className="match-help-backdrop"
+        role="dialog"
+        onClick={cerrarEdicionAccion}
+      >
+        <div className="match-help-modal" onClick={(evento) => evento.stopPropagation()}>
+          <div className="match-help-modal-header">
+            <h2 id="match-editar-accion-titulo">Editar acción</h2>
+            <button
+              aria-label="Cerrar edición"
+              className="match-icon-button"
+              type="button"
+              onClick={cerrarEdicionAccion}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="match-editar-accion-campo">
+            <label className="form-label" htmlFor="editar-accion-etiqueta">
+              Etiqueta
+            </label>
+            <select
+              className="form-select"
+              id="editar-accion-etiqueta"
+              value={formEdicionAccion.etiquetaId}
+              onChange={(evento) =>
+                setFormEdicionAccion((actual) =>
+                  actual ? { ...actual, etiquetaId: Number(evento.target.value) } : actual,
+                )
+              }
+            >
+              {etiquetasDisponibles.map((etiqueta) => (
+                <option key={etiqueta.id} value={etiqueta.id}>
+                  {etiqueta.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="match-editar-accion-campo">
+            <label className="form-label" htmlFor="editar-accion-jugador">
+              Jugador
+            </label>
+            <select
+              className="form-select"
+              id="editar-accion-jugador"
+              value={formEdicionAccion.jugadorId}
+              onChange={(evento) =>
+                setFormEdicionAccion((actual) =>
+                  actual ? { ...actual, jugadorId: evento.target.value } : actual,
+                )
+              }
+            >
+              {sesion.jugadores.map((jugador) => (
+                <option key={jugador.id} value={jugador.id}>
+                  {jugador.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="match-editar-accion-campo">
+            <label className="form-label" htmlFor="editar-accion-minuto">
+              Minuto
+            </label>
+            <input
+              className="form-control"
+              id="editar-accion-minuto"
+              min={0}
+              type="number"
+              value={formEdicionAccion.minuto}
+              onChange={(evento) =>
+                setFormEdicionAccion((actual) =>
+                  actual ? { ...actual, minuto: Number(evento.target.value) } : actual,
+                )
+              }
+            />
+          </div>
+
+          <div className="match-editar-accion-acciones">
+            <button className="btn btn-outline-secondary btn-sm" type="button" onClick={cerrarEdicionAccion}>
+              Cancelar
+            </button>
+            <button className="btn btn-primary btn-sm" type="button" onClick={guardarEdicionAccion}>
+              Guardar cambios
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
 

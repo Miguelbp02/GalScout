@@ -22,6 +22,8 @@ interface PlayerFormProps {
   ) => Promise<void>
   sinTarjeta?: boolean
   historialPendiente?: NuevoHistorialEquipo[]
+  equipoActualBloqueado?: boolean
+  equipoActualEtiqueta?: string | null
 }
 
 const datosJugadorIniciales: NuevoJugador = {
@@ -65,6 +67,8 @@ function PlayerForm({
   onGuardarJugador,
   sinTarjeta = false,
   historialPendiente = [],
+  equipoActualBloqueado = false,
+  equipoActualEtiqueta = null,
 }: PlayerFormProps) {
   const [jugador, setJugador] = useState<NuevoJugador>(jugadorInicial)
   const [edadTexto, setEdadTexto] = useState(String(jugadorInicial.edad))
@@ -321,7 +325,9 @@ function PlayerForm({
               </label>
               <input
                 className="form-control"
-                disabled={formularioBloqueado || jugador.estado === 'Libre'}
+                disabled={
+                  formularioBloqueado || jugador.estado === 'Libre' || equipoActualBloqueado
+                }
                 id="equipo-actual"
                 list="equipos-registrados"
                 placeholder={
@@ -330,7 +336,11 @@ function PlayerForm({
                     : 'Escribe o selecciona un equipo'
                 }
                 type="text"
-                value={jugador.equipoActual}
+                value={
+                  equipoActualBloqueado
+                    ? (equipoActualEtiqueta ?? jugador.equipoActual)
+                    : jugador.equipoActual
+                }
                 onChange={(evento) =>
                   setJugador({ ...jugador, equipoActual: evento.target.value })
                 }
@@ -340,6 +350,12 @@ function PlayerForm({
                   <option key={equipo} value={equipo} />
                 ))}
               </datalist>
+              {equipoActualBloqueado && (
+                <p className="form-text mb-0">
+                  Ya tiene una etapa marcada como actual en el historial. Para
+                  cambiar de equipo, edítalo desde la pestaña «Historial».
+                </p>
+              )}
             </div>
 
             <div className="col-12 col-md-6">

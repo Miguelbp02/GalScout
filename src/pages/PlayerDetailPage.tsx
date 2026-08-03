@@ -14,6 +14,7 @@ import PlayerStatsTab from '../components/PlayerStatsTab'
 import PlayerExportTab from '../components/PlayerExportTab'
 import PositionFieldSelector from '../components/PositionFieldSelector'
 import DominantFootIndicator from '../components/DominantFootIndicator'
+import JerseyNumberBadge from '../components/JerseyNumberBadge'
 import TeamHistoryList from '../components/TeamHistoryList'
 import { obtenerAbreviaturaPosicion } from '../constants/positionAbbreviations'
 import {
@@ -154,7 +155,7 @@ function PlayerDetailPage() {
         setValoracionesGenerales(valoraciones)
       } catch {
         setErrorValoracionesGenerales(
-          'No se han podido cargar las valoraciones generales.',
+          'No se han podido cargar los informes generales.',
         )
       } finally {
         setValoracionesGeneralesCargando(false)
@@ -378,31 +379,32 @@ function PlayerDetailPage() {
                   </div>
 
                   <dl className="row mb-0">
-                    <dt className="col-sm-6 text-body-secondary">Edad</dt>
-                    <dd className="col-sm-6">{jugador.edad} años</dd>
+                    <dt className="col-sm-4 text-body-secondary">Edad</dt>
+                    <dd className="col-sm-8">{jugador.edad} años</dd>
 
-                    <dt className="col-sm-6 text-body-secondary">Altura</dt>
-                    <dd className="col-sm-6">{jugador.alturaCm} cm</dd>
+                    <dt className="col-sm-4 text-body-secondary">Altura</dt>
+                    <dd className="col-sm-8">{jugador.alturaCm} cm</dd>
 
                     {jugador.categoria && (
                       <>
-                        <dt className="col-sm-6 text-body-secondary">Categoría</dt>
-                        <dd className="col-sm-6">{jugador.categoria}</dd>
+                        <dt className="col-sm-4 text-body-secondary">Categoría</dt>
+                        <dd className="col-sm-8">{jugador.categoria}</dd>
                       </>
                     )}
 
                     {jugador.equipoActual && (
                       <>
-                        <dt className="col-sm-6 text-body-secondary">Equipo</dt>
-                        <dd className="col-sm-6">{jugador.equipoActual}</dd>
+                        <dt className="col-sm-4 text-body-secondary">Equipo</dt>
+                        <dd className="col-sm-8">{jugador.equipoActual}</dd>
                       </>
                     )}
 
-                    <dt className="col-sm-6 text-body-secondary">Pierna dominante</dt>
-                    <dd className="col-sm-6 mb-0 player-dominant-foot-value">
-                      <DominantFootIndicator piernaDominante={jugador.piernaDominante} />
-                    </dd>
                   </dl>
+
+                  <div className="player-detail-graficos">
+                    <JerseyNumberBadge dorsal={jugador.dorsalActual} size={42} />
+                    <DominantFootIndicator piernaDominante={jugador.piernaDominante} />
+                  </div>
                 </div>
                 </div>
                 <div className="player-detail-radar">
@@ -497,11 +499,12 @@ function PlayerDetailPage() {
           <section className="card mt-4 shadow-sm" aria-labelledby="valoracion-general-title">
             <div className="card-body p-4">
               <h2 id="valoracion-general-title" className="h4 mb-2">
-                Valoración general
+                Informe general
               </h2>
               <p className="text-body-secondary small mb-4">
-                Registra una impresión global del jugador. Cada valoración queda guardada
-                como un registro histórico.
+                Registra una impresión global del jugador en texto limpio, lista para
+                compartir en exportaciones externas. Cada informe queda guardado como un
+                registro histórico.
               </p>
               <GeneralRatingForm onCrearValoracion={añadirValoracionGeneral} />
               <GeneralRatingList

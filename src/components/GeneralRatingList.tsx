@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import HistoryListSkeleton from './HistoryListSkeleton'
 import TrashIcon from './TrashIcon'
-import { obtenerClaseNivel } from '../constants/nivelesValoracion'
 import type { ValoracionGeneral } from '../types/valoracionGeneral'
 
 interface GeneralRatingListProps {
@@ -47,7 +46,7 @@ function GeneralRatingList({
   return (
     <div className="mt-4">
       <div className="d-flex align-items-center justify-content-between gap-3 mb-3">
-        <h3 className="h5 mb-0">Historial de valoraciones generales</h3>
+        <h3 className="h5 mb-0">Historial de informes generales</h3>
         {modoEliminar ? (
           <div className="d-flex align-items-center gap-2">
             <button
@@ -75,10 +74,10 @@ function GeneralRatingList({
               {valoraciones.length} registros
             </span>
             <button
-              aria-label="Seleccionar valoraciones generales para eliminar"
+              aria-label="Seleccionar informes generales para eliminar"
               className="history-delete-trigger"
               disabled={valoraciones.length === 0}
-              title="Eliminar valoraciones"
+              title="Eliminar informes"
               type="button"
               onClick={() => setModoEliminar(true)}
             >
@@ -99,7 +98,7 @@ function GeneralRatingList({
 
       {!cargando && !error && valoraciones.length === 0 && (
         <p className="empty-player-list mb-0 rounded border p-3 text-center text-body-secondary">
-          Todavía no hay valoraciones generales.
+          Todavía no hay informes generales.
         </p>
       )}
 
@@ -127,13 +126,6 @@ function GeneralRatingList({
                   </span>
                 </span>
                 <span className="d-flex align-items-center gap-3">
-                  <span
-                    className={`general-rating-score ${obtenerClaseNivel(
-                      valoracion.puntuacion,
-                    )}`}
-                  >
-                    {valoracion.puntuacion} / 20
-                  </span>
                   <span aria-hidden="true" className="observation-toggle">
                     ▸
                   </span>

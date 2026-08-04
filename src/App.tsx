@@ -17,6 +17,7 @@ import ComparePlayersPage from './pages/ComparePlayersPage'
 import MatchScoutingPage from './pages/MatchScoutingPage'
 import SuggestionsPage from './pages/SuggestionsPage'
 import FloatingMatchPill from './components/FloatingMatchPill'
+import { useModoJugadores } from './components/ModoJugadoresContext'
 import { crearJugador, obtenerJugadores } from './services/playerService'
 import { crearHistorialEquipo } from './services/teamHistoryService'
 import { obtenerTemporadasRecientes } from './constants/temporadas'
@@ -32,6 +33,7 @@ type PestanaNuevoJugador = 'datos' | 'historial'
 
 function App() {
   const navigate = useNavigate()
+  const { modo: modoJugadores } = useModoJugadores()
   const [jugadores, setJugadores] = useState<Jugador[]>([])
   const [sesion, setSesion] = useState<Session | null>(null)
   const [sesionCargando, setSesionCargando] = useState(true)
@@ -147,8 +149,7 @@ function App() {
     filtrosJugadores.alturaMaxima !== limitesFiltrosJugadores.alturaMaxima ||
     Boolean(filtrosJugadores.piernaDominante) ||
     Boolean(filtrosJugadores.estado) ||
-    Boolean(filtrosJugadores.posicionNatural) ||
-    filtrosJugadores.soloFicticios
+    Boolean(filtrosJugadores.posicionNatural)
   const jugadoresFiltrados = jugadores.filter((jugador) => {
     const posicionesNaturales = jugador.posicion.split(' · ').map((posicion) => posicion.trim())
     const nombreNormalizado = jugador.nombre
@@ -162,7 +163,7 @@ function App() {
       .toLocaleLowerCase('es-ES')
 
     return (
-      Boolean(jugador.esFicticio) === filtrosJugadores.soloFicticios &&
+      Boolean(jugador.esFicticio) === (modoJugadores === 'ficticios') &&
       (!busquedaNormalizada || nombreNormalizado.includes(busquedaNormalizada)) &&
       jugador.edad >= filtrosJugadores.edadMinima &&
       jugador.edad <= filtrosJugadores.edadMaxima &&
@@ -211,7 +212,7 @@ function App() {
         onCerrarSesion={() => void cerrarSesion()}
       />
 
-      {filtrosJugadores.soloFicticios && (
+      {modoJugadores === 'ficticios' && (
         <p className="alert alert-warning mt-4 mb-0" role="status">
           Viendo solo jugadores ficticios de prueba. Estos jugadores no son reales.
         </p>

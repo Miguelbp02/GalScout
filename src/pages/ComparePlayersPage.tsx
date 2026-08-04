@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import playerPlaceholder from '../assets/player-placeholder.png'
 import AppFooter from '../components/AppFooter'
 import AppHeader from '../components/AppHeader'
+import { useModoJugadores } from '../components/ModoJugadoresContext'
 import PlayerComparisonBars from '../components/PlayerComparisonBars'
 import PlayerComparisonRadar from '../components/PlayerComparisonRadar'
 import PlayerSelect from '../components/PlayerSelect'
@@ -14,6 +15,7 @@ import type { Jugador } from '../types/jugador'
 import type { Posicion } from '../types/posicion'
 
 function ComparePlayersPage() {
+  const { modo: modoJugadores } = useModoJugadores()
   const [jugadores, setJugadores] = useState<Jugador[]>([])
   const [posiciones, setPosiciones] = useState<Posicion[]>([])
   const [cargando, setCargando] = useState(true)
@@ -51,6 +53,19 @@ function ComparePlayersPage() {
     [posiciones],
   )
 
+  const jugadoresVisibles = useMemo(
+    () =>
+      jugadores.filter(
+        (jugador) => Boolean(jugador.esFicticio) === (modoJugadores === 'ficticios'),
+      ),
+    [jugadores, modoJugadores],
+  )
+
+  useEffect(() => {
+    setIdJugadorA('')
+    setIdJugadorB('')
+  }, [modoJugadores])
+
   function perfilDeJugador(jugador: Jugador): PerfilScouting {
     return posicionPorteroId !== undefined &&
       jugador.posicionesNaturalesIds.includes(posicionPorteroId)
@@ -58,11 +73,11 @@ function ComparePlayersPage() {
       : 'campo'
   }
 
-  const jugadorA = jugadores.find((jugador) => jugador.id === idJugadorA) ?? null
-  const jugadorB = jugadores.find((jugador) => jugador.id === idJugadorB) ?? null
+  const jugadorA = jugadoresVisibles.find((jugador) => jugador.id === idJugadorA) ?? null
+  const jugadorB = jugadoresVisibles.find((jugador) => jugador.id === idJugadorB) ?? null
 
   function opcionesPara(idExcluido: string, jugadorReferencia: Jugador | null) {
-    return jugadores
+    return jugadoresVisibles
       .filter((jugador) => jugador.id !== idExcluido)
       .filter(
         (jugador) =>

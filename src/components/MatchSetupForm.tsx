@@ -3,6 +3,7 @@ import { obtenerJugadores } from '../services/playerService'
 import { obtenerPosiciones } from '../services/positionService'
 import { obtenerEquipos } from '../services/teamService'
 import { useMatchSession } from './MatchSessionContext'
+import { useModoJugadores } from './ModoJugadoresContext'
 import PlayerSelect from './PlayerSelect'
 import type { PerfilScouting } from '../types/criterio'
 import type { Jugador } from '../types/jugador'
@@ -14,6 +15,7 @@ const MAXIMO_JUGADORES = 4
 
 function MatchSetupForm() {
   const { iniciarPartido } = useMatchSession()
+  const { modo: modoJugadores } = useModoJugadores()
   const idListaEquipos = useId()
 
   const [jugadores, setJugadores] = useState<Jugador[]>([])
@@ -66,6 +68,7 @@ function MatchSetupForm() {
   const idsSeleccionados = new Set(seleccionados.map((item) => item.jugador.id))
 
   const opcionesDisponibles = jugadores
+    .filter((jugador) => Boolean(jugador.esFicticio) === (modoJugadores === 'ficticios'))
     .filter((jugador) => !idsSeleccionados.has(jugador.id))
     .sort((primero, segundo) => primero.nombre.localeCompare(segundo.nombre, 'es'))
 

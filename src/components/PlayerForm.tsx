@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import PositionFieldSelector from './PositionFieldSelector'
+import { useEsDesarrollador } from '../hooks/useEsDesarrollador'
 import { obtenerPosiciones } from '../services/positionService'
 import { obtenerEquipos } from '../services/teamService'
 import type {
@@ -71,6 +72,7 @@ function PlayerForm({
   equipoActualBloqueado = false,
   equipoActualEtiqueta = null,
 }: PlayerFormProps) {
+  const esDesarrollador = useEsDesarrollador()
   const [jugador, setJugador] = useState<NuevoJugador>(jugadorInicial)
   const [edadTexto, setEdadTexto] = useState(String(jugadorInicial.edad))
   const [alturaTexto, setAlturaTexto] = useState(String(jugadorInicial.alturaCm))
@@ -406,26 +408,28 @@ function PlayerForm({
               </select>
             </div>
 
-            <div className="col-12">
-              <div className="form-check">
-                <input
-                  checked={jugador.esFicticio}
-                  className="form-check-input"
-                  disabled={formularioBloqueado}
-                  id="es-ficticio"
-                  type="checkbox"
-                  onChange={(evento) =>
-                    setJugador({ ...jugador, esFicticio: evento.target.checked })
-                  }
-                />
-                <label className="form-check-label" htmlFor="es-ficticio">
-                  Jugador ficticio{' '}
-                  <span className="text-body-secondary">
-                    (para pruebas, no aparece con los jugadores reales)
-                  </span>
-                </label>
+            {esDesarrollador && (
+              <div className="col-12">
+                <div className="form-check">
+                  <input
+                    checked={jugador.esFicticio}
+                    className="form-check-input"
+                    disabled={formularioBloqueado}
+                    id="es-ficticio"
+                    type="checkbox"
+                    onChange={(evento) =>
+                      setJugador({ ...jugador, esFicticio: evento.target.checked })
+                    }
+                  />
+                  <label className="form-check-label" htmlFor="es-ficticio">
+                    Jugador ficticio{' '}
+                    <span className="text-body-secondary">
+                      (para pruebas, no aparece con los jugadores reales)
+                    </span>
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
               </div>
 
               {error && (

@@ -66,7 +66,6 @@ function PlayerFilters({
     Boolean(filtros.piernaDominante),
     Boolean(filtros.estado),
     Boolean(filtros.posicionNatural),
-    filtros.soloFicticios,
   ].filter(Boolean).length
 
   function cambiarFiltro(campo: keyof FiltrosJugadores, valor: string) {
@@ -103,10 +102,6 @@ function PlayerFilters({
 
   function cambiarOrden(orden: OrdenJugadores) {
     onCambiarFiltros({ ...filtros, orden })
-  }
-
-  function cambiarSoloFicticios(soloFicticios: boolean) {
-    onCambiarFiltros({ ...filtros, soloFicticios })
   }
 
   function estiloRango(minimo: number, maximo: number, valorMinimo: number, valorMaximo: number) {
@@ -348,22 +343,6 @@ function PlayerFilters({
                   No se han podido cargar las posiciones.
                 </p>
               )}
-            </div>
-
-            <div className="col-12">
-              <div className="form-check">
-                <input
-                  checked={filtros.soloFicticios}
-                  className="form-check-input"
-                  id="filtro-solo-ficticios"
-                  type="checkbox"
-                  onChange={(evento) => cambiarSoloFicticios(evento.target.checked)}
-                />
-                <label className="form-check-label" htmlFor="filtro-solo-ficticios">
-                  Ver solo jugadores ficticios{' '}
-                  <span className="text-body-secondary">(de prueba, ocultos por defecto)</span>
-                </label>
-              </div>
             </div>
           </div>
         </div>

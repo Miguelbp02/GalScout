@@ -6,6 +6,7 @@ import type { Jugador } from '../types/jugador'
 import { COLORES_JUGADOR, type EquipoSesion } from '../types/matchSession'
 import type { Posicion } from '../types/posicion'
 import { useMatchSession } from './MatchSessionContext'
+import { useModoJugadores } from './ModoJugadoresContext'
 import PlayerSelect from './PlayerSelect'
 
 interface MatchAddPlayerFormProps {
@@ -22,6 +23,7 @@ function MatchAddPlayerForm({
   onJugadorSeleccionado,
 }: MatchAddPlayerFormProps) {
   const { sesion, agregarJugador } = useMatchSession()
+  const { modo: modoJugadores } = useModoJugadores()
   const [jugadores, setJugadores] = useState<Jugador[]>([])
   const [posiciones, setPosiciones] = useState<Posicion[]>([])
   const [jugadorId, setJugadorId] = useState('')
@@ -49,6 +51,7 @@ function MatchAddPlayerForm({
   const sesionActiva = sesion
   const idsEnSeguimiento = new Set(sesionActiva.jugadores.map((jugador) => jugador.id))
   const jugadoresDisponibles = jugadores
+    .filter((jugador) => Boolean(jugador.esFicticio) === (modoJugadores === 'ficticios'))
     .filter((jugador) => !idsEnSeguimiento.has(jugador.id))
     .sort((primero, segundo) => primero.nombre.localeCompare(segundo.nombre, 'es'))
   const jugadorSeleccionado = jugadores.find((jugador) => jugador.id === jugadorId)

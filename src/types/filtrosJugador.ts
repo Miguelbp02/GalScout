@@ -12,7 +12,6 @@ export interface FiltrosJugadores {
   estado: '' | EstadoJugador
   posicionNatural: string
   orden: OrdenJugadores
-  soloFicticios: boolean
 }
 
 export const limitesFiltrosJugadores = {
@@ -32,5 +31,4 @@ export const filtrosJugadoresIniciales: FiltrosJugadores = {
   estado: '',
   posicionNatural: '',
   orden: '',
-  soloFicticios: false,
 }

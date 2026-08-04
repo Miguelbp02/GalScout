@@ -6,6 +6,7 @@ import PlusIcon from './PlusIcon'
 import ScalesIcon from './ScalesIcon'
 import BinocularsIcon from './BinocularsIcon'
 import LightbulbIcon from './LightbulbIcon'
+import ModoJugadoresToggle from './ModoJugadoresToggle'
 import ThemeToggle from './ThemeToggle'
 
 interface AppHeaderProps {
@@ -98,6 +99,7 @@ function AppHeader({
             <span>Mejoras</span>
           </NavLink>
           {herramientas}
+          <ModoJugadoresToggle />
           <ThemeToggle />
         </nav>
       )}

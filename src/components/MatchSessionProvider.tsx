@@ -70,9 +70,11 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
 
     intervaloRef.current = setInterval(() => {
       setSesion((actual) =>
-        actual ? { ...actual, segundos: actual.segundos + 1 } : actual,
+        actual
+          ? { ...actual, segundos: actual.segundos + (actual.multiplicador ?? 1) * 0.25 }
+          : actual,
       )
-    }, 1000)
+    }, 250)
 
     return () => {
       if (intervaloRef.current) {
@@ -93,6 +95,7 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
       estado: 'primera_parte',
       corriendo: false,
       segundos: 0,
+      multiplicador: 1,
       parte: 1,
       acciones: [],
       informesPorJugador: Object.fromEntries(
@@ -190,6 +193,10 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
 
   const pausarCronometro = useCallback(() => {
     setSesion((actual) => (actual ? { ...actual, corriendo: false } : actual))
+  }, [])
+
+  const cambiarMultiplicador = useCallback((multiplicador: number) => {
+    setSesion((actual) => (actual ? { ...actual, multiplicador } : actual))
   }, [])
 
   const irADescanso = useCallback(() => {
@@ -347,6 +354,7 @@ export function MatchSessionProvider({ children }: { children: ReactNode }) {
     cambiarLadoEquipoA,
     iniciarCronometro,
     pausarCronometro,
+    cambiarMultiplicador,
     irADescanso,
     iniciarSegundaParte,
     finalizarPartido,

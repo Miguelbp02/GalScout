@@ -41,6 +41,7 @@ export interface SesionPartido {
   estado: EstadoPartido
   corriendo: boolean
   segundos: number
+  multiplicador: number
   parte: 1 | 2
   acciones: AccionRegistrada[]
   informesPorJugador: Record<string, string>

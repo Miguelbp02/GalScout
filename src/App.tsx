@@ -147,7 +147,8 @@ function App() {
     filtrosJugadores.alturaMaxima !== limitesFiltrosJugadores.alturaMaxima ||
     Boolean(filtrosJugadores.piernaDominante) ||
     Boolean(filtrosJugadores.estado) ||
-    Boolean(filtrosJugadores.posicionNatural)
+    Boolean(filtrosJugadores.posicionNatural) ||
+    filtrosJugadores.soloFicticios
   const jugadoresFiltrados = jugadores.filter((jugador) => {
     const posicionesNaturales = jugador.posicion.split(' · ').map((posicion) => posicion.trim())
     const nombreNormalizado = jugador.nombre
@@ -161,6 +162,7 @@ function App() {
       .toLocaleLowerCase('es-ES')
 
     return (
+      Boolean(jugador.esFicticio) === filtrosJugadores.soloFicticios &&
       (!busquedaNormalizada || nombreNormalizado.includes(busquedaNormalizada)) &&
       jugador.edad >= filtrosJugadores.edadMinima &&
       jugador.edad <= filtrosJugadores.edadMaxima &&
@@ -208,6 +210,12 @@ function App() {
         email={sesion.user.email}
         onCerrarSesion={() => void cerrarSesion()}
       />
+
+      {filtrosJugadores.soloFicticios && (
+        <p className="alert alert-warning mt-4 mb-0" role="status">
+          Viendo solo jugadores ficticios de prueba. Estos jugadores no son reales.
+        </p>
+      )}
 
       {jugadoresCargando && <PlayerListSkeleton />}
 

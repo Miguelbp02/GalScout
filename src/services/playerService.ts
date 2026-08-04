@@ -12,6 +12,7 @@ interface JugadorFila {
   pierna_dominante: Jugador['piernaDominante']
   estado: Jugador['estado']
   categoria: Jugador['categoria']
+  es_ficticio: boolean
 }
 
 interface PosicionJugadorFila {
@@ -47,6 +48,7 @@ function mapearJugador(
     piernaDominante: jugador.pierna_dominante,
     estado: jugador.estado,
     categoria: jugador.categoria,
+    esFicticio: jugador.es_ficticio,
     equipoActual,
     dorsalActual,
     posicionesNaturalesIds,
@@ -56,7 +58,7 @@ function mapearJugador(
 }
 
 const columnasJugador =
-  'id, nombre, edad, altura_cm, posicion, pierna_dominante, estado, categoria'
+  'id, nombre, edad, altura_cm, posicion, pierna_dominante, estado, categoria, es_ficticio'
 
 function validarMedidasJugador(jugador: NuevoJugador) {
   const edadValida =
@@ -241,6 +243,7 @@ export async function crearJugador(jugador: NuevoJugador): Promise<Jugador> {
       pierna_dominante: jugador.piernaDominante,
       estado: jugador.estado,
       categoria: jugador.categoria || null,
+      es_ficticio: jugador.esFicticio,
     })
     .select(columnasJugador)
     .single()
@@ -328,6 +331,7 @@ export async function actualizarJugador(
       pierna_dominante: jugador.piernaDominante,
       estado: jugador.estado,
       categoria: jugador.categoria || null,
+      es_ficticio: jugador.esFicticio,
     })
     .eq('id', jugadorId)
     .select(columnasJugador)

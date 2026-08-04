@@ -14,6 +14,7 @@ export interface DatosJugador {
   estado: EstadoJugador
   categoria: CategoriaJugador | null
   equipoActual: string | null
+  esFicticio: boolean
 }
 
 export interface Jugador extends DatosJugador {
@@ -34,4 +35,5 @@ export interface NuevoJugador {
   estado: EstadoJugador
   categoria: CategoriaJugador | ''
   equipoActual: string
+  esFicticio: boolean
 }

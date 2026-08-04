@@ -24,6 +24,7 @@ export interface MatchSessionContextValue {
   cambiarLadoEquipoA: () => void
   iniciarCronometro: () => void
   pausarCronometro: () => void
+  cambiarMultiplicador: (multiplicador: number) => void
   irADescanso: () => void
   iniciarSegundaParte: () => void
   finalizarPartido: () => void

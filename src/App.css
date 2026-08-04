@@ -3259,6 +3259,122 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
+.match-multiplicador-boton {
+  padding: 4px 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.match-multiplicador-boton:hover,
+.match-multiplicador-boton:focus-visible {
+  border-color: var(--app-action);
+  outline: none;
+}
+
+.match-multiplicador-modal {
+  width: 100%;
+  max-width: 360px;
+  padding: 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background-color: var(--app-surface-raised);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+}
+
+.match-multiplicador-descripcion {
+  margin: 0 0 16px;
+  color: var(--bs-secondary-color);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.match-multiplicador-valor {
+  margin-bottom: 8px;
+  color: var(--app-text);
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.match-multiplicador-slider {
+  display: block;
+  width: 100%;
+}
+
+.match-multiplicador-escala {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--bs-secondary-color);
+  font-size: 0.72rem;
+}
+
+.match-multiplicador-input-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.match-multiplicador-input-fila label {
+  color: var(--app-text);
+  font-size: 0.85rem;
+}
+
+.match-multiplicador-input {
+  width: 90px;
+  padding: 6px 8px;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-text);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.match-multiplicador-input:focus-visible {
+  border-color: var(--app-action);
+  outline: none;
+}
+
+.match-multiplicador-atajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.match-multiplicador-atajo {
+  padding: 4px 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--app-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.match-multiplicador-atajo:hover,
+.match-multiplicador-atajo:focus-visible {
+  border-color: var(--app-action);
+  outline: none;
+}
+
+.match-multiplicador-atajo--activo {
+  border-color: var(--app-action);
+  background: var(--app-action);
+  color: #fff;
+}
+
 .match-timer-track {
   position: relative;
   flex: 1;

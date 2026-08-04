@@ -67,6 +67,7 @@ function EditPlayerPage() {
           estado: jugadorObtenido.estado,
           categoria: jugadorObtenido.categoria ?? '',
           equipoActual: jugadorObtenido.equipoActual ?? '',
+          esFicticio: jugadorObtenido.esFicticio,
           posicionesNaturalesIds: perfilPosicional.posicionesNaturalesIds,
           posicionesAptasIds: perfilPosicional.posicionesAptasIds,
         })

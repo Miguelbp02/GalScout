@@ -2,14 +2,22 @@ import { useState } from 'react'
 import { useMatchSession } from './MatchSessionContext'
 
 function formatearMinutoSegundo(segundos: number) {
-  const minutos = Math.floor(segundos / 60)
-  const restoSegundos = segundos % 60
+  const segundosEnteros = Math.floor(segundos)
+  const minutos = Math.floor(segundosEnteros / 60)
+  const restoSegundos = segundosEnteros % 60
   return `${minutos}:${String(restoSegundos).padStart(2, '0')}`
 }
 
 const MINUTO_MAXIMO = 130
 const MARCAS_TIEMPO = [15, 30, 45, 60, 75, 90, 105, 120]
 const MARCAS_PRINCIPALES = new Set([45, 90])
+const MULTIPLICADOR_MINIMO = 0.25
+const MULTIPLICADOR_MAXIMO = 7
+const MULTIPLICADOR_PASO = 0.05
+
+function redondearMultiplicador(valor: number) {
+  return Math.round(valor * 100) / 100
+}
 
 interface MatchTimerBarProps {
   onCerrar: () => void
@@ -21,6 +29,7 @@ function MatchTimerBar({ onCerrar, onMinimizar }: MatchTimerBarProps) {
     sesion,
     iniciarCronometro,
     pausarCronometro,
+    cambiarMultiplicador,
     irADescanso,
     iniciarSegundaParte,
     finalizarPartido,
@@ -28,12 +37,22 @@ function MatchTimerBar({ onCerrar, onMinimizar }: MatchTimerBarProps) {
   } = useMatchSession()
   const [minutoPendiente, setMinutoPendiente] = useState<number | null>(null)
   const [ayudaAbierta, setAyudaAbierta] = useState(false)
+  const [multiplicadorAbierto, setMultiplicadorAbierto] = useState(false)
 
   if (!sesion) return null
 
   const minutoActual = Math.floor(sesion.segundos / 60)
   const enFaseDeJuego =
     sesion.estado === 'primera_parte' || sesion.estado === 'segunda_parte'
+  const multiplicadorActual = sesion.multiplicador ?? 1
+
+  function actualizarMultiplicador(valor: number) {
+    const acotado = Math.min(
+      MULTIPLICADOR_MAXIMO,
+      Math.max(MULTIPLICADOR_MINIMO, valor),
+    )
+    cambiarMultiplicador(redondearMultiplicador(acotado))
+  }
 
   function confirmarAjuste() {
     if (minutoPendiente === null || minutoPendiente === minutoActual) {
@@ -119,6 +138,16 @@ function MatchTimerBar({ onCerrar, onMinimizar }: MatchTimerBarProps) {
 
         <span className="match-timer-valor">{formatearMinutoSegundo(sesion.segundos)}</span>
 
+        <button
+          aria-label="Ajustar velocidad del cronómetro"
+          className="match-multiplicador-boton"
+          title="Ajusta la velocidad del cronómetro para sincronizarlo con simuladores que juegan partidos más cortos"
+          type="button"
+          onClick={() => setMultiplicadorAbierto(true)}
+        >
+          {multiplicadorActual}x
+        </button>
+
         <div className="match-timer-track">
           <input
             aria-label="Ajustar minuto del cronómetro"
@@ -174,6 +203,86 @@ function MatchTimerBar({ onCerrar, onMinimizar }: MatchTimerBarProps) {
         )}
       </div>
 
+      {multiplicadorAbierto && (
+        <div
+          aria-labelledby="match-multiplicador-titulo"
+          aria-modal="true"
+          className="match-help-backdrop"
+          role="dialog"
+          onClick={() => setMultiplicadorAbierto(false)}
+        >
+          <div
+            className="match-multiplicador-modal"
+            onClick={(evento) => evento.stopPropagation()}
+          >
+            <div className="match-help-modal-header">
+              <h2 id="match-multiplicador-titulo">Velocidad del cronómetro</h2>
+              <button
+                aria-label="Cerrar ajuste de velocidad"
+                className="match-icon-button"
+                type="button"
+                onClick={() => setMultiplicadorAbierto(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="match-multiplicador-descripcion">
+              Sincroniza el cronómetro con la velocidad de un simulador. Mueve el
+              deslizador o escribe el valor exacto.
+            </p>
+
+            <div className="match-multiplicador-valor">{multiplicadorActual}x</div>
+
+            <input
+              aria-label="Deslizador de velocidad del cronómetro"
+              className="match-multiplicador-slider"
+              max={MULTIPLICADOR_MAXIMO}
+              min={MULTIPLICADOR_MINIMO}
+              step={MULTIPLICADOR_PASO}
+              type="range"
+              value={multiplicadorActual}
+              onChange={(evento) => actualizarMultiplicador(Number(evento.target.value))}
+            />
+
+            <div className="match-multiplicador-escala">
+              <span>{MULTIPLICADOR_MINIMO}x</span>
+              <span>{MULTIPLICADOR_MAXIMO}x</span>
+            </div>
+
+            <div className="match-multiplicador-input-fila">
+              <label htmlFor="match-multiplicador-input">Valor exacto</label>
+              <input
+                aria-label="Valor exacto de la velocidad del cronómetro"
+                className="match-multiplicador-input"
+                id="match-multiplicador-input"
+                max={MULTIPLICADOR_MAXIMO}
+                min={MULTIPLICADOR_MINIMO}
+                step={MULTIPLICADOR_PASO}
+                type="number"
+                value={multiplicadorActual}
+                onChange={(evento) => actualizarMultiplicador(Number(evento.target.value))}
+              />
+            </div>
+
+            <div className="match-multiplicador-atajos">
+              {[0.5, 1, 1.5, 2, 3, 5, 7].map((atajo) => (
+                <button
+                  className={`match-multiplicador-atajo ${
+                    multiplicadorActual === atajo ? 'match-multiplicador-atajo--activo' : ''
+                  }`}
+                  key={atajo}
+                  type="button"
+                  onClick={() => actualizarMultiplicador(atajo)}
+                >
+                  {atajo}x
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {ayudaAbierta && (
         <div
           aria-labelledby="match-help-titulo"
@@ -199,6 +308,14 @@ function MatchTimerBar({ onCerrar, onMinimizar }: MatchTimerBarProps) {
               <li>
                 <strong>Activa el cronómetro</strong> en cuanto el árbitro pite el
                 inicio del partido.
+              </li>
+              <li>
+                <strong>Ajusta la velocidad si ves el partido en un simulador.</strong>{' '}
+                Pulsa el botón junto al reloj (por ejemplo "1x") para abrir el
+                selector: con el deslizable, el valor exacto o los atajos rápidos
+                puedes afinar entre 0.25x y 7x hasta que tu cronómetro avance al
+                mismo ritmo que el partido simulado, aunque este dure menos que uno
+                real.
               </li>
               <li>
                 <strong>Revisa los lados del campo.</strong> Si te equivocaste al

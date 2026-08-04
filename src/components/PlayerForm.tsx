@@ -36,6 +36,7 @@ const datosJugadorIniciales: NuevoJugador = {
   estado: 'En equipo',
   categoria: '',
   equipoActual: '',
+  esFicticio: false,
 }
 
 function contienePosicion(posiciones: number[], posicionId: number) {
@@ -403,6 +404,27 @@ function PlayerForm({
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="col-12">
+              <div className="form-check">
+                <input
+                  checked={jugador.esFicticio}
+                  className="form-check-input"
+                  disabled={formularioBloqueado}
+                  id="es-ficticio"
+                  type="checkbox"
+                  onChange={(evento) =>
+                    setJugador({ ...jugador, esFicticio: evento.target.checked })
+                  }
+                />
+                <label className="form-check-label" htmlFor="es-ficticio">
+                  Jugador ficticio{' '}
+                  <span className="text-body-secondary">
+                    (para pruebas, no aparece con los jugadores reales)
+                  </span>
+                </label>
+              </div>
             </div>
               </div>
 

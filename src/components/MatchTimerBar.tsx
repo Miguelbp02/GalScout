@@ -310,14 +310,6 @@ function MatchTimerBar({ onCerrar, onMinimizar }: MatchTimerBarProps) {
                 inicio del partido.
               </li>
               <li>
-                <strong>Ajusta la velocidad si ves el partido en un simulador.</strong>{' '}
-                Pulsa el botón junto al reloj (por ejemplo "1x") para abrir el
-                selector: con el deslizable, el valor exacto o los atajos rápidos
-                puedes afinar entre 0.25x y 7x hasta que tu cronómetro avance al
-                mismo ritmo que el partido simulado, aunque este dure menos que uno
-                real.
-              </li>
-              <li>
                 <strong>Revisa los lados del campo.</strong> Si te equivocaste al
                 elegirlos, puedes cambiarlos para que el campo interactivo represente
                 tu punto de vista real, por ejemplo si estás viendo el partido desde
